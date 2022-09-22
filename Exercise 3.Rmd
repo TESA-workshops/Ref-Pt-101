@@ -1,0 +1,133 @@
+---
+title: "DFO Reference Points 101"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(SAMtool)
+knitr::opts_chunk$set(echo = T, warnings= F)
+```
+
+## Exercise 3: Reference points using an age-structured model with time-varying growth
+
+An operating model was conditioned to age-composition data for the catch and a survey index for a herring stock (1968-2020). An R object is provided for the operating model that contains the relevant data for the exercise. The model was conditioned using a Beverton-Holt stock-recruit relationship (SHH) with assumed steepness (*h*) = 0.8 over the first 5 years, and a constant *M* = 0.3 for all years and ages. The SRR is plotted below (1968 - 2017) with model estimated Beverton-Holt parameters. For this exercise we assume that selectivity is equal to the maturity ogive and is constant over all years. Weight-at-age varies annually and here we look at how the changes in weight-at-age influence *SSB*~0~ and *SSB*~MSY~.
+
+```{r,warning=F,message=F}
+source("source_ftns.r")
+
+MOD <- getOMs(n=1) #get OMs generates the OM objects for 7 different models. For this exercise use the first OM
+
+```
+
+```{r}
+#The following objects can be extracted from mod and saved in a data frame DF
+
+year <- 1:MOD$A@OM@nyears     #Year; vector of length 53
+ssb <- apply(MOD$A@SSB,2,mean)[1:length(year)]  #SSB 1968-2020; vector of length 54
+rec <- MOD$A@mean_fit$report$R[1:length(year)]  #Age 0 recruitment 1968-2020; vector of length 54
+bha <- MOD$A@mean_fit$report$Arec      #constant Beverton-Holt a parameter
+bhb <- MOD$A@mean_fit$report$Brec      #constant Beverton-Holt b parameter
+WAA <- MOD$A@OM@cpars$Wt_age[1,,1:length(year)]     #Weight-at-age; array of dimension 12x53 with ages 0 to 11+ 
+mat <- MOD$A@OM@cpars$Mat_age[1,,1]                 #maturity-at-age; vector of length 12, constant all years
+sel <- mat             #selectivity-at-age = maturity-at-age; vector of length 12, constant all years
+M <- MOD$A@OM@cpars$M_ageArray[1,1,1]
+
+DF <- data.frame(Year=year,SSB=ssb,Rec=rec)
+```
+
+Plot of WAA over time:
+
+```{r,warning=F}
+library(reshape2)
+WAADF <- melt(WAA)
+colnames(WAADF)<-c('Age','Year','Weight')
+
+ggplot(WAADF)+geom_path(aes(y=Weight,x=Year,colour=as.factor(Age))) + theme_classic() 
+```
+
+
+Exercise Questions:
+
+1. Plot the stock-recruit pairs and add the stock-recruit relationship (SRR) using the model estimated a and b parameters. Calculate the unfished SSB-per-recruit ($\phi$~0~) using weight-at-age from year 53 and from 1. Add lines to the stock-recruit plot through the origin with slope equal to 1/$\phi$~0_yr53~ and 1/$\phi$~0_yr1~. Calculate the long-term equilibrium unfished SSB (*SSB*~0~) using $\phi$~0_yr53~ and $\phi$~0_yr1~. [These are the SSB values where the $\phi$~0~ lines intersect the SRR]. 
+
+The equations need here are:
+
+$\phi_0$ = $\frac{SSB}{R}$ rearranged as ${R}$ = $\frac{SSB}{\phi_0}$ and ${R}$ = $\frac{aSSB}{1+bSSB}$
+
+
+2. Calculate *h* using using $\phi$~0~ from year 53 and year 1 to see how *h* changes from the change in weight-at-age over time using equation ${h}$ = $\frac{a\phi_0}{4+a\phi_0}$.
+
+3. Use *SSB*~0~ estimated using $\phi$~0~ from year 53 can calculate the ratio of the predicted recruitment at 20% of *SSB*~0~ to predicted recruitment at *SSB*~0~. What is this ratio?
+
+4. Use vector f <- seq(0:5,0.001) and calculate the SSB-per-recruit ($\phi$~F~) and yield-per-recruit (YPR) for each *F*. Use the SRR to obtain the equilibrium recruitment for each $\phi$~F~ and estimate the equilibrium SSB and equilibrium yield from fishing at each *F*. Plot Yield vs. *F* and Yield vs. Equilibrium SSB. 
+
+5. Obtain estimates of *F*~MSY~ and *SSB*~MSY~ from Question 4 from the *F* and equilibrium SSB that maximize yield.
+
+Solutions:
+
+1.
+
+```{r,warning=F,message=F}
+l0 <- survivorship_F(M=M,n_ages=length(mat))
+phi0_yr1 <- sum(l0*WAA[,1]*mat)
+phi0_yr53 <- sum(l0*WAA[,53]*mat)
+
+ggplot(DF[DF$Year<=2017,])+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +
+  scale_x_continuous(limits = c(0,1200), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,12), expand = c(0, 0)) +
+  geom_function(fun=function(x) (bha*x/(1+bhb*x)),colour="blue",linetype=1) +
+  geom_function(fun=function(x) (1/phi0_yr1*x),colour="red",linetype=2) +
+  geom_function(fun=function(x) (1/phi0_yr53*x),colour="purple",linetype=2) 
+
+```
+
+Take ${R}$ = $\frac{SSB}{\phi_0}$ and set equal to ${R}$ = $\frac{aSSB}{1+bSSB}$ to get
+
+${SSB}$ = $\frac{a\phi-1}{b}$
+
+```{r,warning=F}
+SSB0_yr1 <- (bha*phi0_yr1-1)/bhb
+SSB0_yr53 <- (bha*phi0_yr53-1)/bhb
+c(SSB0_yr1,SSB0_yr53)
+```
+2. 
+
+```{r}
+h_yr1 <- (bha*phi0_yr1)/(4+bha*phi0_yr1)
+h_yr53 <- (bha*phi0_yr53)/(4+bha*phi0_yr53)
+c(h_yr1,h_yr53)
+```
+
+3. 
+
+```{r}
+R0_yr53 <- bha*SSB0_yr53/(1+bhb*SSB0_yr53)
+R_20SSB0_yr53 <- bha*(0.2*SSB0_yr53)/(1+bhb*(0.2*SSB0_yr53))
+
+steepness <- R_20SSB0_yr53/R0_yr53
+```
+
+4.
+
+```{r,message=F}
+RP <- data.frame(f=seq(0,5,0.001),phi=NA,YPR=NA,Eq_SSB=NA,Eq_rec=NA,Yield=NA)
+for(i in 1:nrow(RP)){
+  surv <- survivorship_F(f=RP$f[i],M=M,n_ages=length(sel),sel=sel)
+  RP$phi[i] <- sum(surv*WAA[,53]*mat)
+  RP$YPR[i] <- sum(surv*WAA[,53]*(1-exp(-M-RP$f[i]*sel))*RP$f[i]*sel/(M+RP$f[i]*sel))
+  RP$Eq_SSB[i] <- (bha*RP$phi[i]-1)/bhb
+  RP$Eq_rec[i] <- bha*RP$Eq_SSB[i]/(1+bhb*RP$Eq_SSB[i])
+  RP$Yield[i] <- RP$YPR[i]*RP$Eq_rec[i]
+}
+
+ggplot(RP) + geom_path(mapping=aes(y=Yield,x=f)) + theme_classic()
+ggplot(RP) + geom_path(mapping=aes(y=Yield,x=Eq_SSB)) + theme_classic()
+```
+
+5.
+
+```{r,message=F}
+Fmsy <- RP$f[RP$Yield==max(RP$Yield)]
+SSBmsy <- RP$Eq_SSB[RP$Yield==max(RP$Yield)]
+```

@@ -1,0 +1,154 @@
+---
+title: "DFO Reference Points 101 (Robyn's suggested second draft)"
+output: html_document
+author: "Tim Barrett and Robyn Forrest"
+date: "November 2022"
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(SAMtool)
+library(kableExtra)
+knitr::opts_chunk$set(echo = T, warnings= F)
+```
+
+## Exercise 4: Reference points using an age-structured model. Influence of *h*, *M*, and selectivity 
+
+### NOTE to be deleted: I think this should probably be Ex 2, then we extend this script in Ex 3 to look at proxies such as fraction of B0 and SPR. I don't think we should use the version without the SRR function. I think it has the potential to be confusing in such a short 101 seminar. I will do more work on all the scripts and we can see where we get. I think things need to move along very slowly so people can grasp the basics.
+
+Seven operating models (*source ??*) were conditioned to age-composition data for the catch and a survey index for a herring stock (1968-2020) using various assumptions for *h* and *M* and future selectivity. An R object is provided for each operating model that contains the relevant data for the exercise. *Assume all seven models represent the same stock but with different assumptions?*
+
+The models were conditioned using a Beverton-Holt stock-recruit relationship (SR) with three different values for steepness *h* (0.6, 0.8, or 0.95) *over the first 5 years ... what does this mean?*, and a constant *M* (0.2, 0.3, of 0.4) for all years and ages. In this exercise we look at the influence of the assumptions of *h*, *M*, and selectivity on estimates of *SSB*~MSY~ and *SSB*~0~.
+
+```{r}
+# Load the operating models and set steepness, M and selectivity values
+OM <- c("A","B","C","D","E","F","G")
+h <- c(0.8,0.6,0.95,rep(0.8,4))
+M <- c(rep(0.3,3),0.2,0.4,rep(0.3,2))
+sel <- c(rep('mat',5),'low','high')
+
+OMpars<-data.frame(OM,h,M,Selectivity=sel,Fmsy=NA,SSBmsy=NA,SSB0=NA)
+OMpars[,1:4] %>% kbl(align=c(rep('c',7))) %>% kable_styling()
+```
+
+```{r, echo=F,warning=F}
+
+# The maturities look a bit odd with that kink. Replace with a logistic curve
+mat <- c(0, 0.001075732, 0.040440821, 0.628325999, 0.982591351, 0.999470529, 0.999983827, 1, 1, 1, 1, 1)             
+
+# Make a dataframe for three alternative selectivities based on the 
+#  maturity curve. 
+SDF <- data.frame(
+  Age=rep(0:11,3),
+  Selectivity=c(mat,c(mat[2:12],1),c(0,mat[1:11])), 
+  Scenario = rep(c('mat','low','high'),each=12))
+
+# Plot the selectivity
+ggplot(SDF)+geom_path(mapping=aes(y=Selectivity,x=Age,colour=Scenario)) + theme_classic() +
+  scale_x_continuous(limits = c(0,12), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,1), expand = c(0, 0))
+
+```
+
+```{r,warning=F,message=F}
+source("source_ftns.r")
+MOD <- getOMs(n=7) #get OMs: generates a list with the OM objects for 7 different models
+```
+
+Exercise Questions:
+
+1. Estimate *F*~MSY~, *SSB*~MSY~, and *SSB*~0~ for each of the seven OMs. The code to extract the data from the OMs is below. The reference point calculations can be added to the loop below.
+
+```{r,message=F}
+for(i in 1:7){
+  MFit<-MOD[[OM[i]]]
+  year <- MFit@OM@nyears     #Year; vector of length 53
+  ssb <- apply(MFit@SSB,2,mean)[1:length(year)]  #SSB 1968-2020; vector of length 54
+  rec <- MFit@mean_fit$report$R[1:length(year)]  #Age 0 recruitment 1968-2020; vector of length 54
+  bha <- MFit@mean_fit$report$Arec      #constant Beverton-Holt a parameter
+  bhb <- MFit@mean_fit$report$Brec      #constant Beverton-Holt b parameter
+  waa <- MFit@OM@cpars$Wt_age[1,,length(year)]     #Weight-at-age; array of dimension 12x53 with ages 0 to 11+ 
+  mat <- MFit@OM@cpars$Mat_age[1,,1]                 #maturity-at-age; vector of length 12, constant all years
+  sel <- mat
+  if(i==6){sel <- c(mat[2:12],1) } # low selectivity scenario
+  if(i==7){sel <- c(0,mat[1:11]) } # high selectivity scenario
+  M <- MFit@OM@cpars$M_ageArray[1,1,1]
+
+  # Add reference point calculations and save in dataframe T0
+  RP <- RPcalc(M,waa,mat,sel,a=bha,b=bhb)
+  T0$Fmsy[i] <- RP$Fmsy
+  T0$SSBmsy[i] <- RP$SSBmsy
+  T0$SSB0[i] <- RP$SSB0
+}
+
+T0$SSBmsy_SSB0 <- T0$SSBmsy/T0$SSB0 # h most influential
+T0
+```
+
+2. Calculate the ratio $\frac{SSB_{MSY}}{SSB_0}$ for each OM. Which variable (*h*, *M*, or *selectivity*) is the most influential on this ratio?
+
+
+3. Plot the relative yield vs. *F* and relative yield vs. relative equilibrium SSB curves for OMs A,B,C (*h* variable)
+
+4. Plot the relative yield vs. *F* and relative yield vs. relative equilibrium SSB curves for OMs A,D,E (*M* variable)
+
+5. Plot the relative yield vs. *F* and relative yield vs. relative equilibrium SSB curves for OMs A,F,G (*selectivity* variable)
+
+The loop below can help with Questions 3 to 5 where yield, f, and equilibrium SSB are stored in an array
+
+```{r,message=F,warning=F}
+f=seq(0,5,0.001)
+RES <- array(NA,dim=c(7,length(f),5),dimnames=list(OM,f,c('phi','YPR','Eq_SSB','Eq_rec','Yield')))
+
+for(i in 1:7){
+  MFit<-MOD[[OM[i]]]
+  year <- MFit@OM@nyears     #Year; vector of length 53
+  bha <- MFit@mean_fit$report$Arec      #constant Beverton-Holt a parameter
+  bhb <- MFit@mean_fit$report$Brec      #constant Beverton-Holt b parameter
+  waa <- MFit@OM@cpars$Wt_age[1,,length(year)]     #Weight-at-age; array of dimension 12x53 with ages 0 to 11+ 
+  mat <- MFit@OM@cpars$Mat_age[1,,1]                 #maturity-at-age; vector of length 12, constant all years
+  sel <- mat
+  if(i==6){sel <- c(mat[2:12],1) } # low selectivity scenario
+  if(i==7){sel <- c(0,mat[1:11]) } # high selectivity scenario
+  M <- MFit@OM@cpars$M_ageArray[1,1,1]
+
+  for(j in 1:length(f)){
+    surv <- survivorship_F(f=f[j],M=M,n_ages=length(sel),sel=sel,message=F)
+    RES[i,j,'phi'] <- sum(surv*waa*mat)
+    RES[i,j,'YPR'] <- sum(surv*waa*(1-exp(-M-f[j]*sel))*f[j]*sel/(M+f[j]*sel))
+    RES[i,j,'Eq_SSB'] <- (bha*RES[i,j,'phi']-1)/bhb
+    RES[i,j,'Eq_rec'] <- bha*RES[i,j,'Eq_SSB']/(1+bhb*RES[i,j,'Eq_SSB'])
+    RES[i,j,'Yield'] <- RES[i,j,'YPR']*RES[i,j,'Eq_rec']
+  }  
+}
+
+D1 <- data.frame(OM=rep(c("h0.8","h0.6","h0.95"),each=length(f)),f=rep(f,3),RYield=c(RES[1,,'Yield']/max(RES[1,,'Yield']),RES[2,,'Yield']/max(RES[2,,'Yield']),RES[3,,'Yield']/max(RES[3,,'Yield'])),REq_SSB=c(RES[1,,'Eq_SSB']/max(RES[1,,'Eq_SSB']),RES[2,,'Eq_SSB']/max(RES[2,,'Eq_SSB']),RES[3,,'Eq_SSB']/max(RES[3,,'Eq_SSB'])))
+
+D2 <- data.frame(OM=rep(c("M0.3","M0.2","M0.4"),each=length(f)),f=rep(f,3),RYield=c(RES[1,,'Yield']/max(RES[1,,'Yield']),RES[4,,'Yield']/max(RES[4,,'Yield']),RES[5,,'Yield']/max(RES[5,,'Yield'])),REq_SSB=c(RES[1,,'Eq_SSB']/max(RES[1,,'Eq_SSB']),RES[4,,'Eq_SSB']/max(RES[4,,'Eq_SSB']),RES[5,,'Eq_SSB']/max(RES[5,,'Eq_SSB'])))
+
+
+D3 <- data.frame(OM=rep(c("sel_mat","sel_low","sel_high"),each=length(f)),f=rep(f,3),RYield=c(RES[1,,'Yield']/max(RES[1,,'Yield']),RES[6,,'Yield']/max(RES[6,,'Yield']),RES[7,,'Yield']/max(RES[7,,'Yield'])),REq_SSB=c(RES[1,,'Eq_SSB']/max(RES[1,,'Eq_SSB']),RES[6,,'Eq_SSB']/max(RES[6,,'Eq_SSB']),RES[7,,'Eq_SSB']/max(RES[7,,'Eq_SSB'])))
+
+
+
+ggplot(D1)+geom_path(mapping=aes(y=RYield,x=f,colour=OM)) + theme_classic() +
+  scale_x_continuous(limits = c(0,5), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,1), expand = c(0, 0)) 
+ggplot(D2)+geom_path(mapping=aes(y=RYield,x=f,colour=OM)) + theme_classic() +
+  scale_x_continuous(limits = c(0,5), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,1), expand = c(0, 0)) 
+ggplot(D3)+geom_path(mapping=aes(y=RYield,x=f,colour=OM)) + theme_classic() +
+  scale_x_continuous(limits = c(0,5), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,1), expand = c(0, 0)) 
+
+ggplot(D1)+geom_path(mapping=aes(y=RYield,x=REq_SSB,colour=OM)) + theme_classic() +
+  scale_x_continuous(limits = c(0,1), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,1), expand = c(0, 0)) 
+ggplot(D2)+geom_path(mapping=aes(y=RYield,x=REq_SSB,colour=OM)) + theme_classic() +
+  scale_x_continuous(limits = c(0,1), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,1), expand = c(0, 0))
+ggplot(D3)+geom_path(mapping=aes(y=RYield,x=REq_SSB,colour=OM)) + theme_classic() +
+  scale_x_continuous(limits = c(0,1), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,1), expand = c(0, 0)) 
+
+```

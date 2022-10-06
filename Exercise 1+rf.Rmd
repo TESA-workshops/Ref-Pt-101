@@ -5,6 +5,14 @@ author: "Tim Barrett and Robyn Forrest"
 date: "November 2022"
 ---
 
+TODO: 
+
+Add references
+
+Add some text at the end on problems with MSY and the shift to thinking about it as a limit.
+
+Figure out what is going on with catch calculation. Is it a timing thing? Setting Ct = UBt gives an odd "skirt" at the upper end of the yield curve ... it never goes to zero. It goes away with Ct = UBt-1, which I guess assumes all the catch is taken at the beginning of the year. All the texts use qEtBt as the equation for Ct but we don't have effort. Note qEt = Ft. I think it's a timing thing.
+
 ```{r setup, include=FALSE}
 library(tidyverse)
 knitr::opts_chunk$set(echo = T, warnings= F)
@@ -279,4 +287,3 @@ ggplot(EX3)+
 ```
 
 
-TODO: Add some text on problems with MSY and shift to thinking about it as a limit

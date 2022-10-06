@@ -1,0 +1,140 @@
+---
+title: "DFO Reference Points 101 (Robyn's suggested second draft)"
+output: html_document
+author: "Tim Barrett and Robyn Forrest"
+date: "November 2022"
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+source("source_ftns.r")
+knitr::opts_chunk$set(echo = T, warnings= F)
+```
+
+## Exercise 2: Proxy reference points using an age-structured model with no stock-recruit relationship -- maybe move to a later exercise
+
+Here, we will extend the ideas from Exercise 1 to an age-structured model ... By the end of the exercise you will learn:
+
+*
+
+TODO: 
+
+Add preamble with equations describing the purpose of the exercises
+
+Think about whether this is the best second exercise. I think we should deal with FMSY from a standard S-R approach first, then talk about proxies. As noted, I'm a bit wary of using an example where we assume R0 at BMSY. I guess it can happen when R0 is defined as the median recruitment and the S-R relationship is pretty flat, but I think it's confusing from a 101 point of view.
+
+
+We will use an operating model object from [openMSE](https://openmse.com/) that has been conditioned on age-composition data for the catch and three survey indices for a haddock stock (1971-2018). Natural mortality, *M*, was assumed to be 0.2 *y*^-1 and no stock-recruit relationship was assumed. The stock-recruit pairs are plotted below and saved in the dataframe **SR**. The biological data and selectivity for age classes 0 to 9+ are saved in the dataframe **BI**.
+
+```{r,warning=F,message=F,echo=F,figures-side, fig.show="hold", out.width="50%"}
+SR <- readRDS("had.rda")[[1]] 
+BI <- readRDS("had.rda")[[2]]
+
+P <- ggplot(SR)+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +
+  scale_x_continuous(limits = c(0,400), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,1250), expand = c(0, 0)) +
+  labs(x="SSB (kt)",y="Age 0 Recruitment in millions") +
+    theme(plot.margin = unit(c(0.5,0.5,0.5,0.5), "cm"))
+P
+  
+ggplot(SR)+geom_point(mapping=aes(y=SSB,x=Year)) + theme_classic() +
+  scale_x_continuous(limits = c(1970,2020), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,400), expand = c(0, 0)) +
+    theme(plot.margin = unit(c(0.5,0.5,0.5,0.5), "cm"))
+  
+```
+
+```{r,warning=F,message=F}
+# Dataframe SR with Year, SSB in kt, and age 0 recruitment in millions
+SR <- readRDS("had.rda")[[1]] 
+# Dataframe BI with ages (0 to 9+), weight-at-age in kg (waa), proportion mature-at-age (mat), M, selectivity-at-age (sel)
+BI <- readRDS("had.rda")[[2]] #weight-at-age in g (waa), proportion mature-at-age (mat), M, selectivity-at-age (sel)
+head(SR)
+BI
+```
+
+Exercise Questions
+
+1. Calculate the unfished SSB-per-recruit ($\phi$~0~) using weight-at-age and *M* from the **BI** dataframe. 
+
+Note: The `survivorship_F`() function in source_ftns.R can be used here.
+
+```{r,warning=F,message=F}
+# Note to be deleted: I added the default f=0 into the function call, just to be clear. I also changed l0 to surv0 because it looked like the number 10
+surv0 <- survivorship_F(f=0,M=BI$M,n_ages=nrow(BI))
+phi0 <- sum(surv0*BI$waa*BI$mat)
+phi0
+```
+
+2. Assume the the equilibrium unfished recruitment (*R*~0~) is the median recruitment in the time series and estimate the unfished equilibrium SSB (*SSB*~0~). 
+
+The stock-recruit plot is below. Add a horizontal line at the median recruitment and straight line with slope 1/$\phi$~0~ to show the predicted *SSB*~0~ occurs at the intersection of the median recruitment line and line with slope 1/$\phi$~0~.
+
+Note to be deleted: It bugs me a bit that the predicted SSB0 should be so much lower than the maximum SSB observations and it also puts us in a very weird situation where R0 = RMSY according to the next section below. I don't know if median is the right metric to use. Is this what was used before? This looks more to me like some thought needs to be put into fitting two different S-R curves, as I suspect all those big recruitments are recent. 
+
+```{r,out.width="75%"}
+ggplot(SR)+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +
+  scale_x_continuous(limits = c(0,400), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,1250), expand = c(0, 0)) +
+  geom_hline(yintercept = median(SR$Rec), linetype = 1, colour = "blue") +
+  geom_abline(intercept=0, slope=(1/phi0),colour="red",linetype=2)+
+  #geom_function(fun=function(x) (1/phi0),colour="red",linetype=2) +
+  labs(x="SSB (kt)",y="Age 0 Recruitment in millions")
+
+```
+
+
+```{r,warning=F}
+SSB0 <- phi0*median(SR$Rec)
+SSB0
+```
+
+3. Use vector f <- seq(0:5,0.001) and calculate the SSB-per-recruit ($\phi$~F~), spawning potential ratio (SPR), and yield-per-recruit (YPR) for each *F*. Plot SPR vs. *F* and YPR vs. *F*. 
+
+```{r,warning=F,message=F}
+DF <- data.frame(f=seq(0,5,0.001),phi=NA,SPR=NA,YPR=NA)
+for(i in 1:nrow(DF)){
+  surv <- survivorship_F(f=DF$f[i],M=BI$M,n_ages=nrow(BI),sel=BI$sel)
+  DF$phi[i] <- sum(surv*BI$waa*BI$mat)
+  DF$SPR[i] <- DF$phi[i]/DF$phi[DF$f==0]
+  DF$YPR[i] <- sum(surv*BI$waa*(1-exp(-BI$M-DF$f[i]*BI$sel))*DF$f[i]*BI$sel/(BI$M+DF$f[i]*BI$sel))
+}
+
+ggplot(DF) + geom_path(mapping=aes(y=YPR,x=f)) + theme_classic()
+
+ggplot(DF) + geom_path(mapping=aes(y=SPR,x=f)) + theme_classic()
+```
+
+4. Estimate *F*~40%SPR~ and *F*~max~ using the output from Question 3. What is the SPR at *F*~max~?
+
+```{r,warning=F}
+f40 <- DF$f[which(abs(DF$SPR-0.4)==min(abs(DF$SPR-0.4)))][1]
+f40
+
+fmax <- DF$f[DF$YPR==max(DF$YPR)]
+fmax
+
+SPRfmax <- DF$SPR[DF$f==fmax]
+SPRfmax
+```
+
+5. Assume that the long-term equilibrium recruitment at *F*~MSY~ is R~0~ from Question 2 (i.e., flat SRR such that long-term equilibrium recruitment at *F*~MSY~ = long-term equilibrium recruitment at F = 0). Estimate an *SSB*~MSY~ proxy as the equilibrium biomass from long-term fishing at *F*~40%SPR~. 
+
+```{r,warning=F}
+phi_f40 <- DF$phi[DF$f==f40]
+Bmsyproxy <- phi_f40*median(SR$Rec) #in kt
+Bmsyproxy
+```
+
+6. What is the depletion (SSB/*SSB*~0~) level of the 0.4 *SSB*~MSY~ proxy from Question 5?
+
+```{r,warning=F}
+Bmsyproxy/(SSB0)
+```
+
+7. With a lack of a stock-recruit relationship, (*R*~0~) was assumed to be the median recruitment in the time series for Questions 2 and 5. Estimate the *SSB*~MSY~ proxy in Question 5 using the geometric mean recruitment in the time series as the assumed *R*~0~ as a sensitivity for this assumption.
+
+```{r,warning=F}
+Bmsyproxyb <- phi_f40*exp(mean(log((SR$Rec)))) #in kt
+Bmsyproxyb
+```

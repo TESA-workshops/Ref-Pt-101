@@ -18,12 +18,16 @@ where *B* is biomass, *r* is the intrinsic rate of population growth, *K* is the
 
 ```{r, echo=F,warning=F,figures-side, fig.show="hold", out.width="50%"}
 DF <- read.csv("swordfish.csv")
-ggplot(DF) + geom_path(mapping=aes(y=Catch,x=Year)) + theme_classic() +
+ggplot(DF) + geom_path(mapping=aes(y=Catch,x=Year), size=1.5) + theme_classic() +
   scale_x_continuous(limits = c(1950,2005), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0,22000), expand = c(0, 0)) 
-ggplot(DF) + geom_path(mapping=aes(y=Index,x=Year), colour="blue") + theme_classic() +
+ggplot(DF) + geom_path(mapping=aes(y=Index,x=Year), colour="blue", size=1.5) + theme_classic() +
   scale_x_continuous(limits = c(1950,2005), expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0,1200), expand = c(0, 0)) 
+  scale_y_continuous(limits = c(0,1200), expand = c(0, 0))+
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.text.y = element_text(size=12))+
+  theme(axis.title.x = element_text(size=12))+
+  theme(axis.title.y = element_text(size=12))
 ```
 
 ```{r}
@@ -52,9 +56,12 @@ K <- Model@TMB_report$K
 r <- Model@TMB_report$r
 
 DF$Model_biomass <- Model@B[1:length(D@Year)]
+K
+r
+
 ```
 
-2. Project the stock forward 100 years using *u* = 0 and *u*~MSY~. Plot the projected biomass over time and show that the long-term equilibrium biomass values from fishing at *u* = 0 and *u*~MSY~ are *K* and *K*/2 = *B*~MSY~ estimated from Question 1. The code below will help with the projections (stored in array **P**).
+2. Now project the stock forward 100 years using *u* = 0 and the value for *u*~MSY~ you just found. Plot the projected biomass over time and show that the long-term equilibrium biomass values from fishing at *u* = 0 and *u*~MSY~ are *K* and *K*/2 = *B*~MSY~ estimated from Question 1. The code below will help with the projections (stored in array **P**).
 
 ```{r,warning=F}
 u <- c(0,r/2)

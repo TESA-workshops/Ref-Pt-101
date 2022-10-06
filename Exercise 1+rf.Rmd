@@ -1,0 +1,282 @@
+---
+title: "DFO Reference Points 101 (Robyn's suggested second draft)"
+output: html_document
+author: "Tim Barrett and Robyn Forrest"
+date: "November 2022"
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(echo = T, warnings= F)
+```
+
+## Exercise 1: MSY reference points using a Schaefer Surplus Production Model.
+
+***DISCLAIMER: These are illustrative, deterministic models and should not be used for stock assessment***
+
+**Run the R chunks in Rstudio using the green arrow in each chunk. Run individual lines in the chunks using ctrl+enter. If you want to explore further, you can add your own R code inside any of the chunks, or add your own chunks using ctrl+alt+i. Click on the Knit button in Rstudio to create the document.**
+
+In this exercise we'll explore the idea of projecting the population forward under equilibrium conditions using a surplus production model. By the end of the exercise you will learn:
+
+* Fitting a basic surplus production model and calculating reference points.
+
+* Projecting under equilibrium conditions.
+
+* What is meant by the term "equilibrium reference points".
+
+## 1. Surplus production model with swordfish data
+
+A time series of catch (1950-2005) and survey index (1963-1970 and 1975-2005) are provided for a swordfish stock in dataframe **DF** (source: [openMSE](https://openmse.com/). 
+
+```{r, echo=F,warning=F,figures-side, fig.show="hold", out.width="50%"}
+DF <- read.csv("swordfish.csv")
+
+ggplot(DF) + geom_path(mapping=aes(y=Catch,x=Year), size=1.5) + theme_classic() +
+  scale_x_continuous(limits = c(1950,2005), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,22000), expand = c(0, 0))+
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.text.y = element_text(size=12))+
+  theme(axis.title.x = element_text(size=12))+
+  theme(axis.title.y = element_text(size=12))
+ggplot(DF) + geom_path(mapping=aes(y=Index,x=Year), colour="blue", size=1.5) + theme_classic() +
+  scale_x_continuous(limits = c(1950,2005), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,1200), expand = c(0, 0))+
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.text.y = element_text(size=12))+
+  theme(axis.title.x = element_text(size=12))+
+  theme(axis.title.y = element_text(size=12))
+```
+
+```{r}
+tail(DF)
+```
+
+
+To do this, we first need to fit a population model to the swordfish data to estimate the biomass, harvest rate and model parameters. We'll start with a simple Schaefer, or Surplus Production model (REF). The Schaefer model is: *B*~*t*+1~ = *B*~*t*~ + *rB*~*t*~ (1-*B*~*t*~/*K*) - *C*~*t*~
+
+where *B* is biomass, *r* is the intrinsic rate of population growth, *K* is the carrying capacity, *C* is the catch, and *t* is a discrete time period (one year in this case). *B*~MSY~ is then calculated as *K*/2 and *u*~MSY~ is calculated as *r*/2 (REF).
+
+We can fit the model using various software packages. Here we use SAMtool, an R package from the openMSE software package. 
+
+```{r,warning=F,message=F}
+library(SAMtool)
+library(reshape2)
+
+# Create a data object D with the Catch, Index, Years, and coefficient of variation for the Index.
+D <- new('Data')
+D@Name <- "swordfish"
+D@Cat <- matrix(DF$Catch,nrow=1)
+D@Year <- 1950:2005
+D@Ind <- matrix(DF$Index,nrow=1)
+D@CV_Ind <- matrix(0.3, nrow=1, ncol=length(D@Year))
+
+# Run the model
+Model <- SP(Data = D)
+
+# Extract the parameter estimates from the model
+K <- Model@TMB_report$K
+r <- Model@TMB_report$r
+BMSY <- K/2
+UMSY <- r/2
+
+# Add the biomass and BMSY estimates to the DF object
+DF$Model_biomass <- Model@B[1:length(D@Year)]
+DF$BMSY <- BMSY
+
+# Plot
+ggplot(DF) + 
+  geom_path(mapping=aes(y=Model_biomass,x=Year, colour="Model biomass"), size=1.5)+
+  geom_path(mapping=aes(y=BMSY,x=Year, colour="BMSY"), lty=2, size=1.5)+
+  scale_color_manual(name="",
+                     breaks=c("Model biomass","BMSY"),
+                     values=c("Model biomass"="purple", "BMSY"="black"))+
+  theme_classic() +
+  xlim(1950,2005) +
+  ylim(0,110000)+
+  ylab("Model biomass")+
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.text.y = element_text(size=12))+
+  theme(axis.title.x = element_text(size=12))+
+  theme(axis.title.y = element_text(size=12))
+
+```
+
+## 2. Numerical projection under constant harvest rates
+
+Now let's look at projecting forward for 100 years under a constant harvest rate *u*. We'll start with the most recent harvest rate (terminalU) to show that the population reaches an equilibrium state. In the real world we would interpret this as a constant average rather than exactly the same value every year.
+
+```{r,warning=F}
+
+nyr <- length(DF$Year)
+pyr <- 100 # number of projected years
+fpyr <- nyr+pyr # index of final projection year
+pyrs <- (DF$Year[nyr]+1):(DF$Year[nyr]+pyr)
+ayrs <- (DF$Year[1]):(DF$Year[nyr]+pyr)
+
+P <- data.frame("Year"=DF$Year, 
+    "Biomass"=DF$Model_biomass, 
+    "Catch"=DF$Catch,
+    "U"=DF$Catch/DF$Model_biomass)
+# Add cells for the projection years
+P[fpyr,] <-NA
+
+terminalB <- P$Biomass[nyr]
+terminalC <- P$Catch[nyr]
+terminalU <- terminalC/terminalB
+
+# Populate the projection years
+P$Year[(nyr+1):fpyr] <- pyrs
+P$U[(nyr+1):fpyr] <- terminalU
+
+for(y in (nyr+1):fpyr)
+  { # loop over projection years
+    lastB <- P[(y-1),2]
+    lastC <- P[(y-1),3]
+    
+    P[y,2] <- lastB + r*lastB*(1-lastB/K)-lastC # Projected Biomass from the Schaefer model
+    P[y,3] <- lastB*terminalU # Projected Catch from the Schaefer model
+}
+
+# Plot     
+ggplot(P) + 
+  geom_path(mapping=aes(y=Biomass,x=Year, colour="Biomass"), size=1.5)+
+  geom_path(mapping=aes(y=Catch,x=Year, colour="Catch"), size=1.5)+
+  scale_color_manual(name="",
+                     breaks=c("Biomass","Catch"),
+                     values=c("Biomass"="purple", "Catch"="black"))+
+  geom_vline(xintercept= P$Year[nyr], lty=2)+
+  theme_classic() +
+  ylab("Biomass and catch")+
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.text.y = element_text(size=12))+
+  theme(axis.title.x = element_text(size=12))+
+  theme(axis.title.y = element_text(size=12)) 
+
+```
+
+The population reached equilibrium under the constant harvest rate quite quickly. Just to extend this a little bit, let's do the same with two different harvest rates: *u* = 0 and *u* = U~MSY~, where U~MSY~=*r*/2 from the fitted model. 
+
+```{r,warning=F}
+
+library(reshape2)
+u <- c(0, UMSY)
+P2 <- array(NA,dim=c(100,length(u),2),dimnames = list(1:100,u,c("Biomass","Catch")))
+
+for(i in 1:length(u)){ #loop over u
+  for(y in 1:pyr){     #loop over years
+    if(y==1){          #get terminal year (2005) catch and biomass to begin projections for year 1
+      lastB <- terminalB
+      lastC <- terminalC
+    } else {
+      lastB <- P2[(y-1),i,1]
+      lastC <- P2[(y-1),i,2]
+    }
+    P2[y,i,1] <- lastB + r*lastB*(1-lastB/K)-lastC # Estimated Biomass from the Schaefer model
+    P2[y,i,2] <- lastB*u[i] # Estimated Catch from the Schaefer model
+  }
+}
+
+# Plot the biomass
+pB <- P2[,,1] %>% 
+  as.data.frame() %>% 
+  rename("0" = 1,
+         UMSY = 2) %>% 
+  mutate("Year" = pyrs) %>% 
+  melt(id="Year",variable="U", value.name="Biomass")
+
+# Plot biomass under each U
+ggplot(pB, aes(Year, Biomass)) + 
+  geom_line(aes(color = U), size=1.5) +
+  geom_line(data=DF,aes(y=Model_biomass,x=Year), colour="purple", size=1.5)+
+  geom_vline(xintercept=ayrs[nyr], lty=2)+
+  theme_classic() +
+  ylab("Biomass")+
+  ylim(0,110000)+
+  xlim(ayrs[1],ayrs[length(ayrs)])+
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.text.y = element_text(size=12))+
+  theme(axis.title.x = element_text(size=12))+
+  theme(axis.title.y = element_text(size=12)) 
+
+```
+
+We can see how fishing constantly at any level results in the stock coming to some equilibrium biomass level. The Schaefer model predicts that the stock will eventually come to carrying capacity *K* under no fishing, and to *B*~MSY~ under a constant harvest rate of *U*~MSY~.
+
+We can see this by comparing final equilibrium values from the above numerical exercise with the analytical predictions of the Schaefer model. The numerical and analytical solutions for K and BMSY are identical.
+
+```{r,warning=F}
+pB <- P2[,,1]
+pC <- P2[,,2]
+
+# Final Year Biomass under no fishing
+Beq_0 <- pB[pyr,1]
+# Compare to K
+Beq_0 # Numeric solution
+K     # Analytical solution
+
+# Final Year Biomass under umsy
+Beq_umsy <- pB[pyr,2]
+Beq_umsy # Numerical solution
+BMSY     # Analytical solution
+
+```
+
+This is what is meant by "equilibrium reference points", i.e., if we run out a model for a long time under constant harvest rate and constant conditions, it will "equilibrate" at the analytically-predicted values. 
+
+Of course, in the real world there are never constant conditions. Reference points are thought to represent some long-term average with annual fluctuations around this average. This assumes there are no directional trends or major shifts in model parameters or environmental conditions. This becomes much more complex with statistical catch-at-age models, which may have trends or shifts in parameters such as natural mortality or selectivity-at-age, or in observed population data such as weight-at-age. Impacts of time-varying productivity on reference points is an active area of research (e.g., REFS) but before we can think about impacts of non-stationarity on reference points, we need to understand the basic concepts and we will not spend much time on non-stationarity in this webinar.
+
+## 3. Understanding 'Maximum Sustainable Yield'
+
+We've seen that *B*~MSY~ is an analytical result of the Schaefer model (*K*/2) that can be reproduced numerically by running out the model under a constant harvest rate of *U*~MSY~. Next, we'll repeat Step 2 over a range of harvest rates from 0 to 1 in increments of 0.00 and show that the *U* that maximizes yield is the same as the estimate of *U*~MSY~ (= *r*/2) from Section 1.
+
+
+```{r,warning=F}
+u <- seq(0,1,0.01)
+P3 <- array(0,dim=c(100,length(u),2),dimnames = list(1:100,u,c("Biomass","Catch")))
+
+for(i in 1:length(u)){
+  for(y in 1:100){
+    if(y==1){
+      lastB <- terminalB
+      lastC <- terminalC
+    } else {
+      lastB <- P3[(y-1),i,1]
+      lastC <- P3[(y-1),i,2]
+    }
+  
+    P3[y,i,1] <- lastB + r*lastB*(1-lastB/K)-lastC #Biomass
+    if(P3[y,i,1]<0.000001) P3[y,i,1] <- 0.000
+    # Get the catch for next year
+    P3[y,i,2] <- lastB * u[i]  # Catch = qEB, but qE = F (assume q=1)
+  }
+}
+
+# use last year for equilibrium 
+EX3 <- data.frame(u=u,
+                  Yield = P3[100,,2],
+                  equil_B = P3[100,,1])
+
+#test
+maxY  <- max(EX3$Yield)
+umaxY <- EX3$u[which(EX3$Yield==maxY)]
+umaxY
+UMSY
+
+```
+
+
+```{r}
+# Plot
+
+ggplot(EX3)+
+  geom_path(mapping=aes(y=Yield ,x=u), size=1.5) + 
+  theme_classic() +
+  scale_x_continuous(limits = c(0,1), expand = c(0,0)) +
+  scale_y_continuous(limits = c(0,20000), expand = c(0,0)) +
+  # add vertical line at umsy estimated from model parameter r
+  geom_vline(xintercept = r/2, linetype = 1, colour = "blue") 
+
+```
+
+
+TODO: Add some text on problems with MSY and shift to thinking about it as a limit

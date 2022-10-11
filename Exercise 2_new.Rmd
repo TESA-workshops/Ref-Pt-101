@@ -1,0 +1,126 @@
+---
+title: "DFO Reference Points 101 (Revised draft)"
+output: html_document
+author: "Tim Barrett and Robyn Forrest"
+date: "November 2022"
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+source("source_ftns.r")
+knitr::opts_chunk$set(echo = T, warnings= F)
+```
+
+## Exercise 2: MSY and unfished reference points using an age-structured model with a Beverton-Holt no stock-recruit relationship
+
+Here, we will extend the ideas from Exercise 1 to an age-structured model. By the end of the exercise you will learn:
+
+* Calculating equilibrium MSY reference points when a stock-recruitment relationship is assumed
+
+* Calculating reference points based on equilibrium unfished biomass when a stock-recruitment relationship is assumed
+
+We will use outputs from an operating model object from [openMSE](https://openmse.com/) that has been conditioned on age-composition data for the catch and a survey index for a cod stock (1980-2008). The Natural mortality rate, *M*, was assumed to be 0.2 for ages 0 to 3 and 0.77 for ages 4+. A Beverton-HOlt stock-recruit relationship was assumed. The stock-recruit pairs are plotted below and saved in the dataframe **SR**. The biological data and selectivity for age classes 0 to 12+ are saved in the dataframe **BI**.
+
+```{r,warning=F,message=F,figures-side, fig.show="hold", out.width="50%"}
+data <- readRDS("Ex2data.rda")
+# Dataframe SR with Year, SSB in kt, and age 0 recruitment in millions
+SR <- data$SR
+# Dataframe BI with ages (0 to 12+), weight-at-age in kg (waa), proportion mature-at-age (mat), M, selectivity-at-age (sel)
+BI <- data$BI
+
+# Beverton-Holt parameters a and b (used for plotting)
+BHa <- data$BHa
+BHb <- data$BHb
+
+head(SR)
+head(BI)
+
+#Plot SRR
+P <- ggplot(SR) + geom_point(mapping=aes(y=Rec,x=SSB,colour=Year)) + theme_classic() + 
+  labs(x="SSB (kt)",y="Age 0 Recruitment in millions") +
+  scale_x_continuous(limits = c(0,80), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,40), expand = c(0, 0)) +
+  geom_function(fun=function(x) (BHa*x / (1+BHb*x)),colour="black",linetype=1)
+P
+
+```
+
+Exercise Questions
+
+1. The equilibrium unfished SSB (*SSB*~0~) can be calculated by estimating from the unfished SSB-per-recruit ($\phi$~0~) and the stock-recruitment relationship. The unfished $\phi$~0~ can be estimated using weight-at-age and *M* from the **BI** dataframe. Note: The `survivorship_F`() function in source_ftns.R can be used here.
+
+
+The unfished SSB-per-recruit is: $\phi_0$ = $\frac{SSB_0}{R_0}$ [Equation 1]
+
+
+The stock-recruitment relationship is ${R}$ = $\frac{aSSB}{1+bSSB}$ So at *SSB*~0~ we have ${R_0}$ = $\frac{aSSB_0}{1+bSSB_0}$ [Equation 2]
+
+
+With two equations and two unknown (*SSB*~0~, and *R*~0~) we can solve for *SSB*~0~ by rearranging Equation 1 to be ${R_0}$ = $\frac{SSB_0}{\phi_0}$ and setting equal to Equation 2:
+
+$\frac{SSB_0}{\phi_0}$ = $\frac{aSSB_0}{1+bSSB_0}$ 
+
+Diving both sides by *SSB*~0~ and rearranging results in $SSB_0$ = $\frac{a\phi_0-1}{b}$  [Equation 1]
+
+```{r}
+surv0 <- survivorship_F(f=0,M=BI$M,n_ages=nrow(BI))
+phi0 <- sum(surv0*BI$waa*BI$mat)
+phi0
+
+SSB0 <- (BHa*phi0-1)/BHb
+```
+
+The estimation of *SSB*~0~ can be shown visually as SSB from the intersection of the SRR and a line through the origin with slope equal to the inverse of $\phi$~0~ (i.e., unfished recruits per spawner). This is illustrated below:
+
+
+```{r,out.width="75%"}
+P + geom_function(fun=function(x) (1/phi0*x),colour="red",linetype=2) +
+    geom_vline(xintercept=SSB0, linetype=2, color = "red") 
+
+
+```
+
+2. A function is provided in source_ftns.R to estimate *F*~MSY~, *SSB*~MSY~, and *MSY*. The steps used for these calculations are:
+
+a) define a vector for *F* `f <- seq(0:5,0.001)`
+b) for each f, calculate the SSB-per-recruit ($\phi_F$) and the yield-per-recruit (*YPR*~F~)
+c) for each f, calculate yield as the product of *YPR*~F~ the the equilibrium recruitment at *F* (found from Equations 1 and 2 above but at *F*=f)
+d) *F*~MSY~ is the *F* that maximizes yield
+e) *SSB*~MSY~ is the equilibrium SSB at *F*~MSY~
+f) *MSY* is the yield at *F*~MSY~
+
+
+Use vector f <- seq(0,5,0.001) and calculate the SSB-per-recruit ($\phi$~F~), spawning potential ratio (SPR), and yield-per-recruit (YPR) for each *F*. Plot SPR vs. *F* and YPR vs. *F*. 
+
+```{r}
+# a)
+f <- seq(0,5,0.001)
+
+#define data frame with columns for f, SSB-per-recruit (phi), yield-per-recruit, equilibrium SSB, equilibrium recruitment 
+DF <- data.frame(f=f, phi_f=NA, ypr_f=NA, eq_ssb_f=NA, eq_rec_f=NA, yield_f=NA)
+
+# b)
+  for(i in 1:length(f)){
+    DF$phi_f[i] <- sum(survivorship_F(f=f[i],M=BI$M,n_ages=length(BI$sel),sel=BI$sel,message=F)*BI$waa*BI$mat)
+    DF$ypr_f[i] <- sum(survivorship_F(f=f[i],M=BI$M,n_ages=length(BI$sel),sel=BI$sel,message=F)*BI$waa*
+                      (1-exp(-(BI$M+f[i]*BI$sel)))*f[i]*BI$sel/(BI$M+f[i]*BI$sel))
+  }  
+
+DF$eq_ssb_f <- (BHa*DF$phi_f-1)/BHb # Equation for equilibrium SSB from setting Equations 1 and 2 equal at the specified F
+DF$eq_rec_f <- BHa*DF$eq_ssb_f/(1+BHb*DF$eq_ssb_f) # Substituting equilibrium SSB into the SRR
+
+# c)
+DF$yield_f <- DF$ypr_f*DF$eq_rec_f
+# d)
+Fmsy <- f[which(DF$yield_f == max(DF$yield_f))]
+Fmsy
+# e)
+SSBmsy <- DF$eq_ssb_f[which(DF$yield_f == max(DF$yield_f))]
+SSBmsy
+# f)
+MSY <- DF$yield_f[which(DF$yield_f == max(DF$yield_f))]
+MSY
+
+RP <- RPcalcs(M=BI$M,waa=BI$waa,mat=BI$mat,sel=BI$sel,a=BHa,b=BHb,Req=NA)
+RP
+```

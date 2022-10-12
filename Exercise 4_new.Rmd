@@ -1,0 +1,94 @@
+---
+title: "DFO Reference Points 101 (Revised draft)"
+output: html_document
+author: "Tim Barrett and Robyn Forrest"
+date: "November 2022"
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(SAMtool)
+knitr::opts_chunk$set(echo = T, warnings= F)
+```
+
+## Exercise 3: Reference points using an age-structured model with time-varying growth
+
+Here we look at one operating model from Exercise 3 and growth is time-varying. The objective of this exercise is to explore the influence of the time period selected to describe growth on reference points. 
+
+An operating model was conditioned to age-composition data for the catch and a survey index for a herring stock (time series of 53 years). An R object is provided for the operating model that contains the relevant data for the exercise. The model was conditioned using a Beverton-Holt stock-recruit relationship (SHH) with assumed steepness (*h*) = 0.8 over the first 5 years, and a constant *M* = 0.3 for all years and ages. The SRR is plotted below with model estimated Beverton-Holt parameters. For this exercise we assume that selectivity is equal to the maturity ogive and is constant over all years. Weight-at-age varies annually and here we look at how the changes in weight-at-age influence *SSB*~0~ and *SSB*~MSY~.
+
+```{r,warning=F,message=F}
+source("source_ftns.r")
+datalist <- readRDS("Ex4data.rda")
+# The DF dataframe has the data needed for this exercise
+DF <- datalist$DF
+head(DF)
+# Weight-at-age is time-varying and a matrix of dimension 12 x 53 is provided with the weights-at-age 0 to 11+ for 53 years
+WAA <- datalist$WAA
+WAA[,1:5]
+
+```
+
+Plot of weight-at-age over time:
+
+```{r,warning=F}
+library(reshape2)
+WAADF <- melt(WAA)
+colnames(WAADF)<-c('Age','Year','Weight')
+
+ggplot(WAADF)+geom_path(aes(y=Weight,x=Year,colour=as.factor(Age))) + theme_classic() 
+```
+
+We first explore the influence of using the average weight-at-age from 
+
+a) the first 5 years of the time series, and 
+b) the last 5 years of the time series
+
+on estimates of the unfished SSB-per-recruit ($\phi$~0~), $SSB_0$, and $SSB_{MSY}$.
+
+```{r,warning=F,message=F}
+
+surv0 <- survivorship_F(M=DF$M[1:12],n_ages=12)
+
+# SSB-per-recruit (g/rec)
+phi0_first5 <- sum(surv0*apply(WAA[,1:5],1,mean)*DF$mat[1:12])
+phi0_first5
+phi0_last5 <- sum(surv0*apply(WAA[,49:53],1,mean)*DF$mat[1:12])
+phi0_last5
+# SSB0
+SSB0_first5 <- (DF$BHa[1]*phi0_first5-1)/DF$BHb[1] 
+SSB0_last5 <- (DF$BHa[1]*phi0_last5-1)/DF$BHb[1] 
+
+ggplot(DF)+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +
+  labs(x="SSB (kt)",y="Age 0 Recruitment in millions") +
+  scale_x_continuous(limits = c(0,1200), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,12), expand = c(0, 0)) +
+  geom_function(fun=function(x) (DF$BHa[1]*x/(1+DF$BHb[1]*x))) +
+  geom_function(fun=function(x) (1/phi0_first5*x),colour="red",linetype=2) +
+  geom_function(fun=function(x) (1/phi0_last5*x),colour="purple",linetype=2) +
+  geom_vline(xintercept=SSB0_first5,color="red") +
+  geom_vline(xintercept=SSB0_last5,color="purple") 
+
+```
+
+##Delete - I did want to show than h changes over time to demonstrate that h is not constant but is a measure of producivity and varies over time as components of productivity change. Too complicated? Or include?
+
+```{r,warning=F,message=F}
+
+RP_first5 <- MSYcalc(M=DF$M[1:12],waa=apply(WAA[,1:5],1,mean),mat=DF$mat[1:12],sel=DF$sel[1:12],a=DF$BHa[1],b=DF$BHb[1])
+RP_last5 <- MSYcalc(M=DF$M[1:12],waa=apply(WAA[,49:53],1,mean),mat=DF$mat[1:12],sel=DF$sel[1:12],a=DF$BHa[1],b=DF$BHb[1])
+
+ggplot(DF)+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +
+  labs(x="SSB (kt)",y="Age 0 Recruitment in millions") +
+  scale_x_continuous(limits = c(0,1200), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,12), expand = c(0, 0)) +
+  geom_function(fun=function(x) (DF$BHa[1]*x/(1+DF$BHb[1]*x))) +
+  # SSB0 solid vertical line
+  geom_vline(xintercept=SSB0_first5,color="red") +
+  geom_vline(xintercept=SSB0_last5,color="purple") +
+  # SSBmsy dashed vertical line
+  geom_vline(xintercept=RP_first5$SSBmsy,color="red",linetype=2) +
+  geom_vline(xintercept=RP_last5$SSBmsy,color="purple",linetype=2) 
+
+```
+

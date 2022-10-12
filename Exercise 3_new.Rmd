@@ -1,0 +1,222 @@
+---
+title: "DFO Reference Points 101 (Revised draft)"
+output: html_document
+author: "Tim Barrett and Robyn Forrest"
+date: "November 2022"
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(SAMtool)
+library(kableExtra)
+knitr::opts_chunk$set(echo = T, warnings= F)
+```
+
+## Exercise 3: Reference points using an age-structured model. Influence of *h*, *M*, and selectivity on *SSB*~MSY~ and *SSB*~0~
+
+Here, we will use the `MSYcalcs()` function that we explored in Exercise 2 to calculate *F*~MSY~, *SSB*~MSY~, and *SSB*~0~ for various models with different model assumptions for the same stock. By the end of the exercise you will get a feel for:
+
+* The influence of *h* on reference point estimates
+
+* The influence of *M* on reference point estimates
+
+* The influence of selectivity on reference point estimates
+
+Seven operating models were conditioned to age-composition data for the catch and a survey index for a herring stock (1968-2020) using various assumptions for *h* and *M* and future selectivity. These operating models were fit specifically for exploration purposes for this exercise. A dataframe **D** is provided that contains the relevant data for the exercise. Here we assume all seven models represent the same stock but with different assumptions on *h*, *M*, and selectivity.
+
+The models were conditioned using a Beverton-Holt stock-recruit relationship (SR) with three different values for steepness *h* (0.6, 0.8, or 0.95) *over the first 5 years ... what does this mean?*, and a constant *M* (0.2, 0.3, or 0.4) for all years and ages. In this exercise we look at the influence of the assumptions of *h*, *M*, and selectivity on estimates of *SSB*~MSY~ and *SSB*~0~.
+
+The assumptions for the seven OMs are listed below:
+
+```{r}
+# Load the operating models and set steepness, M and selectivity values
+OM <- c("A","B","C","D","E","F","G")
+h <- c(0.8,0.6,0.95,rep(0.8,4))
+M <- c(rep(0.3,3),0.2,0.4,rep(0.3,2))
+sel <- c(rep('mat',5),'low','high')
+
+OMpars<-data.frame(OM,h,M,Selectivity=sel,Fmsy=NA,SSBmsy=NA,SSB0=NA)
+OMpars[,1:4] %>% kbl(align=c(rep('c',7))) %>% kable_styling()
+```
+Three selectivity scenarios are explored. The first (*mat*) is the maturity ogive. A *low* and *high* scenario represent the maturity ogive shifted to the left and right by 1 age on the x-axis (Figure x).
+
+```{r, echo=F,warning=F}
+
+ages <- 0:11
+mat <- 1/(1+exp(10.5-3.67*ages))            
+
+# Make a dataframe for three alternative selectivities based on the maturity curve. 
+SDF <- data.frame(
+  Age=rep(0:11,3),
+  Selectivity=c(mat,1/(1+exp(10.5-3.67*(ages+1))),1/(1+exp(10.5-3.67*(ages-1)))), 
+  Scenario = rep(c('mat','low','high'),each=12))
+
+# Plot the selectivity
+ggplot()+ theme_classic() + labs(x="Age",y="Maturity") +
+  scale_x_continuous(limits = c(0,11), breaks = 0:11,  expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,1), expand = c(0, 0)) +
+  geom_function(fun=function(x) (1/(1+exp(10.5-3.67*x))),colour="black",linetype=1) +
+  geom_function(fun=function(x) (1/(1+exp(10.5-3.67*(x-1)))),colour="blue",linetype=2) +
+  geom_function(fun=function(x) (1/(1+exp(10.5-3.67*(x+1)))),colour="red",linetype=3)
+```
+
+```{r,warning=F,message=F}
+source("source_ftns.r")
+D <- readRDS("Ex3data.rda") # The data required for this exercise is saved in a single data frame
+
+# D contains columns with Year, model estimated SSB in kt, model estimated age-0 recruitment (millions), the Beverton-Holt a and b parameters, and the weight-at-age (waa in kg), proportion maturity-at-age (mat), M-at-age, and selectivity-at-age (sel).
+head(D)
+```
+
+Estimate *F*~MSY~, *SSB*~MSY~, and *SSB*~0~ for each of the seven OMs. The reference point calculations can be done using the `MSYcalc()` function.
+
+```{r,message=F}
+plot_list <- list()
+for(i in 1:7){
+  # Extract data from D
+  M <- D$M[D$OM==OM[i] & D$Age %in% ages]
+  waa <- D$waa[D$OM==OM[i] & D$Age %in% ages]
+  mat <- D$mat[D$OM==OM[i] & D$Age %in% ages]
+  sel <- D$sel[D$OM==OM[i] & D$Age %in% ages]
+  BHa <- D$BHa[D$OM==OM[i] & !is.na(D$BHa)]
+  BHb <- D$BHb[D$OM==OM[i] & !is.na(D$BHb)]
+
+  RP <- MSYcalc(M,waa,mat,sel,a=BHa,b=BHb)
+  # Add reference point calculations and save in dataframe OMpars
+  OMpars$Fmsy[i] <- RP$Fmsy
+  OMpars$SSBmsy[i] <- round(RP$SSBmsy,1)
+  OMpars$SSB0[i] <- round(RP$SSB0,1)
+  
+  plot_list[[i]] <- RP$D
+}
+
+OMpars$SSBmsy_SSB0 <- round(OMpars$SSBmsy/OMpars$SSB0,3)
+
+OM2 <- rbind(OMpars[2,],OMpars[1,],OMpars[3,],
+             OMpars[4,],OMpars[1,],OMpars[5,],
+             OMpars[6,],OMpars[1,],OMpars[7,])
+row.names(OM2) <- NULL
+OM2 %>% kbl(rownames=F,align=c(rep('c',8)),col.names = gsub("[_]", "/", names(OM2))) %>% kable_styling() %>%
+  pack_rows("h", 1, 3) %>%
+  pack_rows("M", 4, 6) %>%
+  pack_rows("sel", 7, 9) 
+```
+Here we look at the influence of the different parameters (*h*, *M*, and selectivity) on the reference point estimates)
+
+## Infuence of *h*
+```{r,warning=F}
+ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions") + ggtitle("h: black=0.8, blue=0.6, red=0.95. Dashed lines have slope 1/phi0. Vertical lines are at SSBmsy") +
+  scale_x_continuous(limits = c(0,1500), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,25), expand = c(0, 0)) +
+  # SR pairs
+  geom_point(data=D[D$OM==OM[1],],mapping=aes(y=Rec,x=SSB),colour='black') +
+  geom_point(data=D[D$OM==OM[2],],mapping=aes(y=Rec,x=SSB),colour='blue') +
+  geom_point(data=D[D$OM==OM[3],],mapping=aes(y=Rec,x=SSB),colour='red') +
+  # Model estimated SRR
+  geom_function(fun=function(x) (D$BHa[D$OM==OM[1] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[1] & !is.na(D$BHb)]*x)),colour="black",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[2] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[2] & !is.na(D$BHb)]*x)),colour="blue",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[3] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[3] & !is.na(D$BHb)]*x)),colour="red",linetype=1) +
+  # Line with slope 1/phi0 through the origin. Note that phi0 does not depend on h so they overlap
+  geom_function(fun=function(x) (1/plot_list[[1]]$phi_f[1]*x),colour="black",linetype=2) +
+  geom_function(fun=function(x) (1/plot_list[[2]]$phi_f[1]*x),colour="blue",linetype=2) +
+  geom_function(fun=function(x) (1/plot_list[[3]]$phi_f[1]*x),colour="red",linetype=2) +
+  # Vertical line at SSBmsy
+  geom_vline(xintercept=OMpars$SSBmsy[1], color = "black") +
+  geom_vline(xintercept=OMpars$SSBmsy[2], color = "blue") +
+  geom_vline(xintercept=OMpars$SSBmsy[3], color = "red") 
+```
+
+```{r,warning=F}
+ggplot() + theme_classic() + labs(x="F",y="Yield (kt)") + ggtitle("h: black=0.8, blue=0.6, red=0.95") +
+  scale_x_continuous(limits = c(0,5), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,80), expand = c(0, 0)) +
+  geom_path(data=plot_list[[1]],mapping=aes(y=yield_f,x=f),colour='black') +
+  geom_path(data=plot_list[[2]],mapping=aes(y=yield_f,x=f),colour='blue') +
+  geom_path(data=plot_list[[3]],mapping=aes(y=yield_f,x=f),colour='red') +
+  geom_vline(xintercept=OMpars$Fmsy[1], linetype=2, color = "black") +
+  geom_vline(xintercept=OMpars$Fmsy[2], linetype=2, color = "blue") +
+  geom_vline(xintercept=OMpars$Fmsy[3], linetype=2, color = "red") 
+```
+```{r,warning=F}
+ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") + ggtitle("h: black=0.8, blue=0.6, red=0.95") +
+  scale_x_continuous(limits = c(0,600), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,80), expand = c(0, 0)) +
+  geom_path(data=plot_list[[1]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='black') +
+  geom_path(data=plot_list[[2]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='blue') +
+  geom_path(data=plot_list[[3]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='red') +
+  geom_vline(xintercept=OMpars$SSBmsy[1], linetype=2, color = "black") +
+  geom_vline(xintercept=OMpars$SSBmsy[2], linetype=2, color = "blue") +
+  geom_vline(xintercept=OMpars$SSBmsy[3], linetype=2, color = "red") 
+```
+
+*Note: F > 5 is needed to continue the yield curve for h = 0.95 down to the origin. This can be done by increasing the maximum F in the `MSYcalcs()` function but isn't necessary.*
+
+## Infuence of *M*
+
+```{r,warning=F}
+ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions") + ggtitle("M: black=0.3, blue=0.2, red=0.4. Dashed lines have slope 1/phi0") +
+  scale_x_continuous(limits = c(0,1500), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,25), expand = c(0, 0)) +
+  # SR pairs
+  geom_point(data=D[D$OM==OM[1],],mapping=aes(y=Rec,x=SSB),colour='black') +
+  geom_point(data=D[D$OM==OM[4],],mapping=aes(y=Rec,x=SSB),colour='blue') +
+  geom_point(data=D[D$OM==OM[5],],mapping=aes(y=Rec,x=SSB),colour='red') +
+  # Model estimated SRR
+  geom_function(fun=function(x) (D$BHa[D$OM==OM[1] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[1] & !is.na(D$BHb)]*x)),colour="black",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[4] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[4] & !is.na(D$BHb)]*x)),colour="blue",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[5] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[5] & !is.na(D$BHb)]*x)),colour="red",linetype=1) +
+  # Line with slope 1/phi0 through the origin. Note that phi0 depends on M
+  geom_function(fun=function(x) (1/plot_list[[1]]$phi_f[1]*x),colour="black",linetype=2) +
+  geom_function(fun=function(x) (1/plot_list[[4]]$phi_f[1]*x),colour="blue",linetype=2) +
+  geom_function(fun=function(x) (1/plot_list[[5]]$phi_f[1]*x),colour="red",linetype=2) 
+```
+
+```{r,warning=F}
+ggplot() + theme_classic() + labs(x="F",y="Yield (kt)") + ggtitle("M: black=0.3, blue=0.2, red=0.4") +
+  scale_x_continuous(limits = c(0,5), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,100), expand = c(0, 0)) +
+  geom_path(data=plot_list[[1]],mapping=aes(y=yield_f,x=f),colour='black') +
+  geom_path(data=plot_list[[4]],mapping=aes(y=yield_f,x=f),colour='blue') +
+  geom_path(data=plot_list[[5]],mapping=aes(y=yield_f,x=f),colour='red') +
+  geom_vline(xintercept=OMpars$Fmsy[1], linetype=2, color = "black") +
+  geom_vline(xintercept=OMpars$Fmsy[4], linetype=2, color = "blue") +
+  geom_vline(xintercept=OMpars$Fmsy[5], linetype=2, color = "red") 
+```
+
+```{r,warning=F}
+ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") + ggtitle("M: black=0.3, blue=0.2, red=0.4") +
+  scale_x_continuous(limits = c(0,700), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,100), expand = c(0, 0)) +
+  geom_path(data=plot_list[[1]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='black') +
+  geom_path(data=plot_list[[4]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='blue') +
+  geom_path(data=plot_list[[5]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='red') +
+  geom_vline(xintercept=OMpars$SSBmsy[1], linetype=2, color = "black") +
+  geom_vline(xintercept=OMpars$SSBmsy[4], linetype=2, color = "blue") +
+  geom_vline(xintercept=OMpars$SSBmsy[5], linetype=2, color = "red") 
+```
+
+## Infuence of selectivity
+
+```{r,warning=F}
+ggplot() + theme_classic() + labs(x="F",y="Yield (kt)") + ggtitle("sel: black=mat, blue=low, red=high") +
+  scale_x_continuous(limits = c(0,5), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,70), expand = c(0, 0)) +
+  geom_path(data=plot_list[[1]],mapping=aes(y=yield_f,x=f),colour='black') +
+  geom_path(data=plot_list[[6]],mapping=aes(y=yield_f,x=f),colour='blue') +
+  geom_path(data=plot_list[[7]],mapping=aes(y=yield_f,x=f),colour='red') +
+  geom_vline(xintercept=OMpars$Fmsy[1], linetype=2, color = "black") +
+  geom_vline(xintercept=OMpars$Fmsy[6], linetype=2, color = "blue") +
+  geom_vline(xintercept=OMpars$Fmsy[7], linetype=2, color = "red") 
+```
+
+```{r,warning=F}
+ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") + ggtitle("sel: black=mat, blue=low, red=high") +
+  scale_x_continuous(limits = c(0,600), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,70), expand = c(0, 0)) +
+  geom_path(data=plot_list[[1]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='black') +
+  geom_path(data=plot_list[[6]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='blue') +
+  geom_path(data=plot_list[[7]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='red') +
+  geom_vline(xintercept=OMpars$SSBmsy[1], linetype=2, color = "black") +
+  geom_vline(xintercept=OMpars$SSBmsy[6], linetype=2, color = "blue") +
+  geom_vline(xintercept=OMpars$SSBmsy[7], linetype=2, color = "red") 
+```

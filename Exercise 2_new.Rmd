@@ -123,7 +123,7 @@ P + geom_function(fun=function(x) (1/phi0*x),colour="red",linetype=2) +
 
 ## Estimate the MSY reference points (*F*~MSY~, *SSB*~MSY~, MSY)
 
-The `RP_calc()` function in source_ftns.R can be used to estimate *F*~MSY~, *SSB*~MSY~, and *MSY*. The calculations in this function are shown below and follow these steps:
+The `MSY_calc()` function in source_ftns.R can be used to estimate *F*~MSY~, *SSB*~MSY~, and *MSY*. The calculations in this function are shown below and follow these steps:
 
 a) Define a vector for *F* `f <- seq(0,5,0.001)`
 b) For each *F*, calculate the SSB-per-recruit ($\phi_F$) and the yield-per-recruit ($YPR_F$)

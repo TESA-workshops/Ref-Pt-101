@@ -11,11 +11,11 @@ library(SAMtool)
 knitr::opts_chunk$set(echo = T, warnings= F)
 ```
 
-## Exercise 3: Reference points using an age-structured model with time-varying growth
+## Exercise 4: Reference points using an age-structured model with time-varying growth
 
-Here we look at one operating model from Exercise 3 and growth is time-varying. The objective of this exercise is to explore the influence of the time period selected to describe growth on reference points. 
+Here we look at one operating model from Exercise 3 where growth is time-varying. The objective of this exercise is to explore the influence of the time period selected to describe growth on reference points and to explore *F* and *SSB*~MSY~ proxy reference points based on Spawning Potential Ratio. 
 
-An operating model was conditioned to age-composition data for the catch and a survey index for a herring stock (time series of 53 years). An R object is provided for the operating model that contains the relevant data for the exercise. The model was conditioned using a Beverton-Holt stock-recruit relationship (SHH) with assumed steepness (*h*) = 0.8 over the first 5 years, and a constant *M* = 0.3 for all years and ages. The SRR is plotted below with model estimated Beverton-Holt parameters. For this exercise we assume that selectivity is equal to the maturity ogive and is constant over all years. Weight-at-age varies annually and here we look at how the changes in weight-at-age influence *SSB*~0~ and *SSB*~MSY~.
+An operating model was conditioned to age-composition data for the catch and a survey index for a herring stock (time series of 53 years). An R object is provided for the operating model that contains the relevant data for the exercise. The model was conditioned using a Beverton-Holt stock-recruit relationship (SHH) with assumed steepness (*h*) = 0.8 over the first 5 years, and a constant *M* = 0.3 for all years and ages. The SRR is plotted below with model estimated Beverton-Holt parameters. For this exercise we assume that selectivity is equal to the maturity ogive and is constant over all years. Weight-at-age varies annually and here we look at how the changes in weight-at-age influence *SSB*~0~ and *SSB*~MSY~. We also look at comparing *F*~40%SPR~ to *F*~MSY~ and the equilibrium SSB from fishing at *F*~40%SPR~ as a proxy for *SSB*~MSY~.
 
 ```{r,warning=F,message=F}
 source("source_ftns.r")
@@ -38,6 +38,8 @@ colnames(WAADF)<-c('Age','Year','Weight')
 
 ggplot(WAADF)+geom_path(aes(y=Weight,x=Year,colour=as.factor(Age))) + theme_classic() 
 ```
+
+## Influence of changes in weight-at-age on $SSB_0$, and $SSB_{MSY}$
 
 We first explore the influence of using the average weight-at-age from 
 
@@ -91,4 +93,34 @@ ggplot(DF)+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +
   geom_vline(xintercept=RP_last5$SSBmsy,color="purple",linetype=2) 
 
 ```
+
+## MSY proxies: 40% SPR
+
+*F*~40%SPR~ is a common proxy for *F*~MSY~ for stocks with average productivity. Here we estimate *F*~40%SPR~ and the equilibrium SSB from fishing at *F*~40%SPR~ using the weight-at-age data from the last 5 years. The output of the `MSYcalc()` function provides a dataframe we call **RP** below that contains a vector of *F* and the SSB-per-recruit, YPR, equilibrium recruitment, and equilibrium SSB at each *F*.
+
+```{r,warning=F,message=F}
+
+RP <- RP_last5$DF
+
+# Preview dataframe 
+head(RP)
+
+# Add SPR column to RP
+RP$SPR <- RP$phi_f/RP$phi_f[1]
+
+# Find the F where SPR is closest to 40%
+Fspr40 <- RP$f[which(abs(RP$SPR-0.4)==min(abs(RP$SPR-0.4)))]
+
+# Compare Fspr40 to Fmsy
+Fspr40
+RP_last5$Fmsy
+
+# The SPR at Fmsy is estimated to be closer to 35%
+RP$SPR[RP$f==round(RP_last5$Fmsy,3)]
+
+# The equilibrium SSB from fishing at Fspr40 is a proxy for SSBmsy
+RP$eq_ssb_f[RP$f==Fspr40]
+RP_last5$SSBmsy
+```
+
 

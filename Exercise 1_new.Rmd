@@ -5,12 +5,6 @@ author: "Tim Barrett and Robyn Forrest"
 date: "November 2022"
 ---
 
-TODO: 
-
-Add references
-
-Add some text at the end on problems with MSY and the shift to thinking about it as a limit.
-
 ```{r setup, include=FALSE}
 library(tidyverse)
 knitr::opts_chunk$set(echo = T, warnings= F)
@@ -24,7 +18,7 @@ knitr::opts_chunk$set(echo = T, warnings= F)
 
 In this exercise we'll explore the idea of projecting the population forward under equilibrium conditions using a surplus production model. By the end of the exercise you will learn:
 
-* Fitting a basic surplus production model and calculating reference points.
+* Fitting a basic surplus production model and calculating reference points based on Maximum Sustainable yield from the Schaefer model.
 
 * Projecting under equilibrium conditions.
 
@@ -49,8 +43,8 @@ ggplot(DF) + geom_path(mapping=aes(y=Index,x=Year), colour="blue", size=1.5) + t
   scale_y_continuous(limits = c(0,1200), expand = c(0, 0))+
   theme(axis.text.x = element_text(size=12))+
   theme(axis.text.y = element_text(size=12))+
-  theme(axis.title.x = element_text(size=12))+
-  theme(axis.title.y = element_text(size=12))
+  theme(axis.title.x = element_text(size=12, face="bold"))+
+  theme(axis.title.y = element_text(size=12, face="bold"))
 ```
 
 ```{r}
@@ -58,15 +52,16 @@ tail(DF)
 ```
 
 
-To do this, we first need to fit a population model to the swordfish data to estimate the biomass, harvest rate and model parameters. We'll start with a simple Schaefer, or Surplus Production model (Schaefer 1954). The Schaefer model is: *B*~*t*+1~ = *B*~*t*~ + *rB*~*t*~ (1-*B*~*t*~/*K*) - *C*~*t*~
+We would like to estimate model parameters and MSY-based reference points for this stock. To do this, we first need to fit a population model to the data to estimate the biomass, harvest rate and model parameters. We'll start with a simple Schaefer, or Surplus Production (SP), model (Schaefer 1954). The Schaefer model is: 
 
-where *B* is biomass, *r* is the intrinsic rate of population growth, *K* is the carrying capacity, *C* is the catch, and *t* is a discrete time period (one year in this case). *B*~MSY~ is then calculated as *K*/2 and *u*~MSY~ is calculated as *r*/2 (REF).
+*B*~*t*+1~ = *B*~*t*~ + *rB*~*t*~ (1-*B*~*t*~/*K*) - *C*~*t*~
 
-We can fit the model using various software packages. Here we use SAMtool, an R package from the openMSE software package. 
+where *B* is biomass, *r* is the intrinsic rate of population growth, *K* is the carrying capacity, *C* is the catch, and *t* is a discrete time period (one year in this case). *B*~MSY~ is then calculated as *K*/2 and *u*~MSY~ is calculated as *r*/2, where *u* is annual harvest rate (Hilborn and Walters 1992, Ch. 8).
+
+We could fit the model using various software packages, or write the code ourselves in R or other languages like ADMB, stan or TMB. Here we use SAMtool, an R package that is part of the openMSE software. When you install the openMSE R package, you will automatically get SAMtool. 
 
 ```{r,warning=F,message=F}
 library(SAMtool)
-library(reshape2)
 
 # Create a data object D with the Catch, Index, Years, and coefficient of variation for the Index.
 D <- new('Data')
@@ -102,23 +97,25 @@ ggplot(DF) +
   ylab("Model biomass")+
   theme(axis.text.x = element_text(size=12))+
   theme(axis.text.y = element_text(size=12))+
-  theme(axis.title.x = element_text(size=12))+
-  theme(axis.title.y = element_text(size=12))
+  theme(axis.title.x = element_text(size=12, face="bold"))+
+  theme(axis.title.y = element_text(size=12, face="bold"))
 
 ```
 
 ## 2. Numerical projection under constant harvest rates
 
-Now let's look at projecting forward for 100 years under a constant harvest rate *u*. We'll start with the most recent harvest rate (terminalU) to show that the population reaches an equilibrium state. In the real world we would interpret this as a constant average rather than exactly the same value every year.
+To help understand the concept of equilibrium reference points, let's look at projecting forward for 100 years under a constant harvest rate *u*. We'll start with the most recent harvest rate (*terminalU*) to show that the population eventually reaches an equilibrium, or steady, state. In the real world we would interpret this as a long-term average rather than exactly the same value every year.
 
 ```{r,warning=F}
 
+# Define indexes
 nyr <- length(DF$Year)
 pyr <- 100 # number of projected years
 fpyr <- nyr+pyr # index of final projection year
 pyrs <- (DF$Year[nyr]+1):(DF$Year[nyr]+pyr)
 ayrs <- (DF$Year[1]):(DF$Year[nyr]+pyr)
 
+# Make a dataframe of historical data and biomass
 P <- data.frame("Year"=DF$Year, 
     "Biomass"=DF$Model_biomass, 
     "Catch"=DF$Catch,
@@ -126,6 +123,7 @@ P <- data.frame("Year"=DF$Year,
 # Add cells for the projection years
 P[fpyr,] <- NA
 
+# Final year biomass, catch and U
 terminalB <- P$Biomass[nyr]
 terminalC <- P$Catch[nyr]
 terminalU <- terminalC/terminalB
@@ -155,16 +153,18 @@ ggplot(P) +
   ylab("Biomass and catch")+
   theme(axis.text.x = element_text(size=12))+
   theme(axis.text.y = element_text(size=12))+
-  theme(axis.title.x = element_text(size=12))+
-  theme(axis.title.y = element_text(size=12)) 
+theme(axis.title.x = element_text(size=12, face="bold"))+
+  theme(axis.title.y = element_text(size=12, face="bold")) 
 
 ```
 
-The population reached equilibrium under the constant harvest rate quite quickly. Just to extend this a little bit, let's do the same with two different harvest rates: *u* = 0 and *u* = U~MSY~, where U~MSY~=*r*/2 from the fitted model. 
+The population reached equilibrium under the constant harvest rate quite quickly. Just to extend this a bit, let's do the same with two different harvest rates: *u* = 0 and *u* = U~MSY~, where U~MSY~=*r*/2 from the fitted model.
 
 ```{r,warning=F}
 
-library(reshape2)
+library(reshape2) # Needed for the melt function
+
+# make a sequence of values for U and an array P2 for results
 u <- c(0, UMSY)
 P2 <- array(NA,dim=c(100,length(u),2),dimnames = list(1:100,u,c("Biomass","Catch")))
 
@@ -201,18 +201,22 @@ ggplot(pB, aes(Year, Biomass)) +
   xlim(ayrs[1],ayrs[length(ayrs)])+
   theme(axis.text.x = element_text(size=12))+
   theme(axis.text.y = element_text(size=12))+
-  theme(axis.title.x = element_text(size=12))+
-  theme(axis.title.y = element_text(size=12)) 
+  theme(axis.title.x = element_text(size=12, face="bold"))+
+  theme(axis.title.y = element_text(size=12, face="bold")) 
 
 ```
 
-We can see how fishing constantly at any level results in the stock coming to some equilibrium biomass level. The Schaefer model predicts that the stock will eventually come to carrying capacity *K* under no fishing, and to *B*~MSY~ under a constant harvest rate of *U*~MSY~.
+Fishing constantly at any harvest rate results in the stock coming to some equilibrium biomass. The Schaefer model predicts that the stock will eventually come to carrying capacity *K* under no fishing, and to *B*~MSY~ under a constant harvest rate of *U*~MSY~, as shown in the plot.
 
-We can see this by comparing final equilibrium values from the above numerical exercise with the analytical predictions of the Schaefer model. The numerical and analytical solutions for K and BMSY are identical.
+We can see this by comparing final equilibrium values from the above numerical exercise with the analytical predictions of the Schaefer model (i.e., *B*~MSY~ = *K*/2 and *u*~MSY~ = *r*/2). The numerical and analytical solutions for K and BMSY are identical.
 
 ```{r,warning=F}
-pB <- P2[,,"Biomass"]
-pC <- P2[,,"Catch"]
+
+#Just get the Biomass from the P2 array
+# Column headers are harvest rate U
+pB <- P2[,,"Biomass"] %>% 
+  as.data.frame()
+tail(pB)
 
 # Final Year Biomass under no fishing
 Beq_0 <- pB[pyr,1]
@@ -223,20 +227,26 @@ K     # Analytical solution
 # Final Year Biomass under umsy
 Beq_umsy <- pB[pyr,2]
 Beq_umsy # Numerical solution
-BMSY     # Analytical solution
+K/2    # Analytical solution
 
 ```
 
-This is what is meant by "equilibrium reference points", i.e., if we run out a model for a long time under constant harvest rate and constant conditions, it will "equilibrate" at the analytically-predicted values. 
+This is what is meant by "equilibrium reference points", i.e., if we run out a model for a long time under constant harvest rate and constant conditions, it will "equilibrate" at the analytically-predicted values. This is true for more complex, age-structured models as well as this simple SP model.
 
-Of course, in the real world there are never constant conditions. Reference points are thought to represent some long-term average with annual fluctuations around this average. This assumes there are no directional trends or major shifts in model parameters or environmental conditions. This becomes much more complex with statistical catch-at-age models, which may have trends or shifts in parameters such as natural mortality or selectivity-at-age, or in observed population data such as weight-at-age. Impacts of time-varying productivity on reference points is an active area of research (e.g., REFS) but before we can think about impacts of non-stationarity on reference points, we need to understand the basic concepts and we will not spend much time on non-stationarity in this webinar.
+Of course, in the real world there are never constant conditions. Reference points represent some long-term average with annual fluctuations around this average. This assumes there are no directional trends or major shifts in model parameters or environmental conditions. This becomes much more complex with statistical catch-at-age models, which may have trends or shifts in parameters such as growth, natural mortality or selectivity-at-age, or in observed population data such as weight-at-age. Calculating reference points under these conditions requires some extra assumptions (such as whether to average time-varying model variables and over what period). These choices can be impactful in terms of interpretation of stock status and advice and should be taken with care.  Impacts of time-varying variables on reference points and advice is an active area of research (e.g., Haltuch et al. 2009; Holt and Michielsens 2020; Zhang et al. 2020). However, in this webinar we are trying to illustrate the basic concepts. We will touch on non-stationarity in Exercise 4, but will not have time for detailed analysis.
 
 ## 3. Understanding 'Maximum Sustainable Yield'
 
-We've seen that *B*~MSY~ is an analytical result of the Schaefer model (*K*/2) that can be reproduced numerically by running out the model under a constant harvest rate of *U*~MSY~. Next, we'll repeat Step 2 over a range of harvest rates from 0 to 1 in increments of 0.01 and show that the *U* that maximizes yield is the same as the estimate of *U*~MSY~ (= *r*/2) from Section 1.
+We've seen that *B*~MSY~ is an analytical result of the Schaefer model (*K*/2) that can be reproduced numerically by running out the model under a constant harvest rate of *U*~MSY~. Next, we'll repeat Step 2 over a range of harvest rates from 0 to 1 in increments of 0.01 and show that the constant harvest rate *u* that maximizes yield is the same as the estimate of *U*~MSY~ from Section 1. This is shown as the blue dashed line in the equilibrium yield plot below. 
+
+The two-parameter Schaefer model produces a symmetrical yield curve. More complex, non-symmetrical versions of this model exist (e.g,. the Pella-Tomlinson model; Hilborn and Walters 1992) and indeed, similar yield curves are produced by age-structured models. The important concept from this exercise is that *U*~MSY~ (or its instantaneous equivalent *F*~MSY~, which we'll see in Exercise 2) is the long-term harvest rate that would maximize yield in the long-term under stable conditions.
+
+Note: In the exercise below, we identify *U*~MSY~ numerically by running out the model under a sequence of harvest rates and identifying the value of *U* that maximizes yield in the long term. The figure below (an inverted parabola) suggests that we could use calculus to find the harvest rate that maximizes yield (i.e., the derivative of yield with respect to *U* = 0). This is indeed how most numerical searches for *U*~MSY~ or *F*~MSY~ work. For the purposes of these exercises, however, we will stick with the simple grid search. This most clearly illustrates the concept of maximizing yield, but please be aware that this is the least efficient means of finding *U*~MSY~!
 
 
 ```{r,warning=F}
+
+# make a sequence of values for U and an array P3 for results
 u <- seq(0,1,0.001)
 P3 <- array(0,dim=c(1000,length(u),2),dimnames = list(1:1000,u,c("Biomass","Catch")))
 
@@ -266,7 +276,7 @@ EX3 <- data.frame(u=u,
 maxY  <- max(EX3$Yield)
 umaxY <- EX3$u[which(EX3$Yield==maxY)]
 umaxY
-UMSY
+round(UMSY,3)
 
 ```
 
@@ -280,10 +290,33 @@ ggplot(EX3)+
   scale_x_continuous(limits = c(0,1), expand = c(0,0)) +
   scale_y_continuous(limits = c(0,20000), expand = c(0,0)) +
   # add vertical line at umsy estimated from model parameter r
-  geom_vline(xintercept = r/2, linetype = 1, colour = "blue") 
+  geom_vline(xintercept = r/2, linetype = 2, colour = "blue", size=1.25)+
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.text.y = element_text(size=12))+
+  theme(axis.title.x = element_text(size=12, face="bold"))+
+  theme(axis.title.y = element_text(size=12, face="bold"))
 
 ```
 
-References:
+## References
+
+Haltuch, M. A., Punt, A. E., & Dorn, M. W. (2009). Evaluating the estimation of fishery management reference points in a variable environment. Fisheries Research, 100(1), 42–56. 
+
+Hilborn R. and Walters, C.J. 1992. Quantitative fisheries stock assessment: choice, dynamics and uncertainty. Chapman and Hall, New York. 570 pp.
+
+Holt, C. A., & Michielsens, C. G. J. (2020). Impact of time-varying productivity on estimated stock-recruitment parameters and biological reference points. Canadian Journal of Fisheries and Aquatic Sciences, InPress. 
 
 Schaefer, M.B. 1954. Some aspects of the dynamics of the populations important to the management of the commercial marine fisheries. Inter-American Tropical Tuna Commission, 1: 27-56.
+
+Zhang, F., Regular, P. M., Wheeland, L., Rideout, R. M., & Morgan, M. J. (2020). Accounting for non-stationary stock–recruitment relationships in the development of MSY-based reference points. ICES Journal of Marine Science, fsaa176. https://doi.org/10.1093/icesjms/fsaa176
+
+**Further reading**
+
+Larkin, P. A. 1977. An epitaph for the concept of maximum sustained yield. Transactions of the American Fisheries Society 106(1), 1-11.
+
+Mace, P.M., 2001. A new role for MSY in single-species and ecosystem approaches to fisheries
+stock assessment and management. Fish and Fisheries 2(1), 2-32.
+
+Punt, A.E. and Smith, A.D.M. 2001. The gospel of Maximum Sustainable Yield in fisheries management: birth, crucifixion and reincarnation. In: Conservation of Exploited Species (eds. J.D. Reynolds, G.M. Mace, K.H. Redford & J.G. Robinson), pp. 41-66. Cambridge University Press, Cambridge.
+
+

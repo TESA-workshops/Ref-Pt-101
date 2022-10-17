@@ -13,6 +13,10 @@ knitr::opts_chunk$set(echo = T, warnings= F)
 
 ## Exercise 2: Estimating unfished biomass and MSY reference points using an age-structured model with a Beverton-Holt stock-recruit relationship
 
+***DISCLAIMER: These are illustrative, deterministic models and should not be used for stock assessment***
+
+**Run the R chunks in Rstudio using the green arrow in each chunk. Run individual lines in the chunks using ctrl+enter. If you want to explore further, you can add your own R code inside any of the chunks, or add your own chunks using ctrl+alt+i. Click on the Knit button in Rstudio to create the document.**
+
 Here, we will extend the ideas from Exercise 1 to an age-structured model. By the end of the exercise you will learn how to:
 
 * Calculate equilibrium unfished biomass when a stock-recruitment relationship is assumed

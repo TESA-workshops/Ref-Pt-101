@@ -1,5 +1,5 @@
 ---
-title: "DFO Reference Points 101 (Robyn's suggested second draft)"
+title: "DFO Reference Points 101 (Revised draft)"
 output: html_document
 author: "Tim Barrett and Robyn Forrest"
 date: "November 2022"
@@ -10,7 +10,7 @@ library(tidyverse)
 knitr::opts_chunk$set(echo = T, warnings= F)
 ```
 
-## Exercise 1: MSY reference points using a Schaefer Surplus Production Model.
+## Exercise 1: MSY reference points using a Schaefer Surplus Production Model
 
 ***DISCLAIMER: These are illustrative, deterministic models and should not be used for stock assessment***
 
@@ -300,11 +300,11 @@ ggplot(EX3)+
 
 ## References
 
-Haltuch, M. A., Punt, A. E., & Dorn, M. W. (2009). Evaluating the estimation of fishery management reference points in a variable environment. Fisheries Research, 100(1), 42–56. 
+Haltuch, M. A., Punt, A. E., & Dorn, M. W. (2009). Evaluating the estimation of fishery management reference points in a variable environment. Fisheries Research, 100(1), 42–56. https://doi.org/10.1016/j.fishres.2009.03.001 
 
 Hilborn R. and Walters, C.J. 1992. Quantitative fisheries stock assessment: choice, dynamics and uncertainty. Chapman and Hall, New York. 570 pp.
 
-Holt, C. A., & Michielsens, C. G. J. (2020). Impact of time-varying productivity on estimated stock-recruitment parameters and biological reference points. Canadian Journal of Fisheries and Aquatic Sciences, InPress. 
+Holt, C. A., & Michielsens, C. G. J. (2020). Impact of time-varying productivity on estimated stock-recruitment parameters and biological reference points. Canadian Journal of Fisheries and Aquatic Sciences. https://cdnsciencepub.com/doi/10.1139/cjfas-2019-0104
 
 Schaefer, M.B. 1954. Some aspects of the dynamics of the populations important to the management of the commercial marine fisheries. Inter-American Tropical Tuna Commission, 1: 27-56.
 
@@ -312,11 +312,9 @@ Zhang, F., Regular, P. M., Wheeland, L., Rideout, R. M., & Morgan, M. J. (2020).
 
 **Further reading**
 
-Larkin, P. A. 1977. An epitaph for the concept of maximum sustained yield. Transactions of the American Fisheries Society 106(1), 1-11.
+Larkin, P. A. 1977. An epitaph for the concept of maximum sustained yield. Transactions of the American Fisheries Society 106(1), 1-11. [https://doi.org/10.1577/1548-8659(1977)106<1:AEFTCO>2.0.CO;2](https://doi.org/10.1577/1548-8659(1977)106<1:AEFTCO>2.0.CO;2)
 
 Mace, P.M., 2001. A new role for MSY in single-species and ecosystem approaches to fisheries
-stock assessment and management. Fish and Fisheries 2(1), 2-32.
+stock assessment and management. Fish and Fisheries 2(1), 2-32.  https://doi.org/10.1046/j.1467-2979.2001.00033.x
 
 Punt, A.E. and Smith, A.D.M. 2001. The gospel of Maximum Sustainable Yield in fisheries management: birth, crucifixion and reincarnation. In: Conservation of Exploited Species (eds. J.D. Reynolds, G.M. Mace, K.H. Redford & J.G. Robinson), pp. 41-66. Cambridge University Press, Cambridge.
-
-

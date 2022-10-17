@@ -14,6 +14,10 @@ knitr::opts_chunk$set(echo = T, warnings= F)
 
 ## Exercise 3: Reference points using an age-structured model. Influence of *h*, *M*, and selectivity on *SSB*~MSY~ and *SSB*~0~
 
+***DISCLAIMER: These are illustrative, deterministic models and should not be used for stock assessment***
+
+**Run the R chunks in Rstudio using the green arrow in each chunk. Run individual lines in the chunks using ctrl+enter. If you want to explore further, you can add your own R code inside any of the chunks, or add your own chunks using ctrl+alt+i. Click on the Knit button in Rstudio to create the document.**
+
 Here, we will use the `MSYcalcs()` function that we explored in Exercise 2 to calculate *F*~MSY~, *SSB*~MSY~, and *SSB*~0~ for various models with different model assumptions for the same stock. By the end of the exercise you will get a feel for:
 
 * The influence of *h* on reference point estimates

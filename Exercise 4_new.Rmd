@@ -13,6 +13,10 @@ knitr::opts_chunk$set(echo = T, warnings= F)
 
 ## Exercise 4: Reference points using an age-structured model with time-varying growth
 
+***DISCLAIMER: These are illustrative, deterministic models and should not be used for stock assessment***
+
+**Run the R chunks in Rstudio using the green arrow in each chunk. Run individual lines in the chunks using ctrl+enter. If you want to explore further, you can add your own R code inside any of the chunks, or add your own chunks using ctrl+alt+i. Click on the Knit button in Rstudio to create the document.**
+
 Here we look at one operating model from Exercise 3 where growth is time-varying. The objective of this exercise is to explore the influence of the time period selected to describe growth on reference points and to explore *F* and *SSB*~MSY~ proxy reference points based on Spawning Potential Ratio. 
 
 An operating model was conditioned to age-composition data for the catch and a survey index for a herring stock (time series of 53 years). An R object is provided for the operating model that contains the relevant data for the exercise. The model was conditioned using a Beverton-Holt stock-recruit relationship (SHH) with assumed steepness (*h*) = 0.8 over the first 5 years, and a constant *M* = 0.3 for all years and ages. The SRR is plotted below with model estimated Beverton-Holt parameters. For this exercise we assume that selectivity is equal to the maturity ogive and is constant over all years. Weight-at-age varies annually and here we look at how the changes in weight-at-age influence *SSB*~0~ and *SSB*~MSY~. We also look at comparing *F*~40%SPR~ to *F*~MSY~ and the equilibrium SSB from fishing at *F*~40%SPR~ as a proxy for *SSB*~MSY~.

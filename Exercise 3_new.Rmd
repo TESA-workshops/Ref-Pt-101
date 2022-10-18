@@ -12,7 +12,7 @@ library(kableExtra)
 knitr::opts_chunk$set(echo = T, warnings= F)
 ```
 
-## Exercise 3: Reference points using an age-structured model. Influence of *h*, *M*, and selectivity on *SSB*~MSY~ and *SSB*~0~
+## Exercise 3: Reference points using an age-structured model. Influence of *h*, *M*, and selectivity on *SSB*~MSY~ and *SSB*~0~. Introducing the proxy F~SPR~.
 
 ***DISCLAIMER: These are illustrative, deterministic models and should not be used for stock assessment***
 

@@ -6,7 +6,8 @@ date: "November 2022"
 ---
 
 ```{r setup, include=FALSE}
-library(ggplot2)
+library(tidyverse)
+library(reshape2)
 source("source_ftns.r")
 knitr::opts_chunk$set(echo = T, warnings= F)
 ```
@@ -23,7 +24,9 @@ Here, we will extend the ideas from Exercise 1 to an age-structured model. By th
 
 * Calculate equilibrium MSY reference points when a stock-recruitment relationship is assumed
 
-We will use outputs from an operating model object from [openMSE](https://openmse.com/) that has been conditioned on age-composition data for the catch and a survey index for an Atlantic cod stock (1980-2008). The natural mortality rate (*M*) was assumed to be 0.2 for ages 0 to 3 and 0.77 for ages 4+. A Beverton-Holt stock-recruit relationship was assumed. The stock-recruit pairs are plotted below and saved in the dataframe **SR**. The biological data (weight-at-age, maturity-at-age, *M*-at-age) and model-estimated selectivity-at-age for age classes 0 to 12+ are saved in the dataframe **BI**.
+We will use outputs from an operating model object from [openMSE](https://openmse.com/) that has been conditioned on age-composition data for the catch and a survey index for an Atlantic cod stock (1980-2008). The natural mortality rate (*M*) was assumed to be 0.2 for ages 0 to 3 and 0.77 for ages 4+. 
+
+A Beverton-Holt stock-recruit relationship was assumed (Beverton and Holt 1957; Hilborn and Walters 1992, Ch 7). The stock-recruit pairs are plotted below and saved in the dataframe **SR**. The biological data (weight-at-age, maturity-at-age, *M*-at-age) and model-estimated selectivity-at-age for age classes 0 to 12+ are saved in the dataframe **BI**.
 
 ```{r,warning=F, fig.show="hold", out.width="75%"}
 data <- readRDS("Ex2data.rda")
@@ -42,16 +45,97 @@ head(BI)
 
 # Plot the stock-recruitment relationship
 P <- ggplot(SR) + geom_point(mapping=aes(y=Rec,x=SSB,colour=Year)) + theme_classic() + 
-  labs(x="SSB (kt)",y="Age 0 Recruitment in millions") +
+  labs(x="SSB (kt)",y="Age 0 Recruits (millions)") +
   scale_x_continuous(limits = c(0,80), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0,40), expand = c(0, 0)) +
-  geom_function(fun=function(x) (BHa*x / (1+BHb*x)),colour="black",linetype=1)
+  geom_function(fun=function(x) (BHa*x / (1+BHb*x)),colour="black",linetype=1)+
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.text.y = element_text(size=12))+
+  theme(axis.title.x = element_text(size=12, face="bold"))+
+  theme(axis.title.y = element_text(size=12, face="bold"))
 P
 ```
 
-## Estimate the Equilibrium Unfished Biomass (*SSB*~0~)
+Age-structured models keep track of the proportion of fish that are mature at a given age, as well as the proportion of fish that are vulnerable (or "available") to the fishery, which are determined by the maturity-at-age and selectivity-at-age schedules. For this stock, it is assumed these schedules are fixed in time. 
 
-The equilibrium unfished SSB (*SSB*~0~) can be calculated from the equilibrium unfished SSB-per-recruit ($\phi$~0~) and the stock-recruitment relationship. The $\phi$~0~ is estimated from the equilibrium survivorship-at-age ($s_{a}$), the weight-at-age ($w_{a}$), and the maturity-at-age ($m_{a}$) at *F* = 0.
+```{r,warning=F, fig.show="hold", out.width="75%"}
+
+# Plot maturity-at-age and selectivity-at age
+matsel <- BI %>% 
+  select(age,mat,sel) %>%
+  melt(id="age", variable.name="Schedule",value.name="Proportion") %>%
+  # Rename labels mat, sel and age for prettier plotting
+  mutate(Schedule=as.character(Schedule)) %>% 
+  mutate(Schedule = replace(Schedule, Schedule=="mat","Maturity"),
+         Schedule = replace(Schedule, Schedule=="sel","Selectivity")) %>% 
+  rename("Age"=age) %>%
+  ggplot() + 
+  geom_line(mapping=aes(x=Age,y=Proportion,colour=Schedule), size=1.5) + 
+  theme_classic() + 
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.text.y = element_text(size=12))+
+  theme(axis.title.x = element_text(size=12, face="bold"))+
+  theme(axis.title.y = element_text(size=12, face="bold"))+
+  theme(legend.title = element_text(size=12, face="bold"))+
+  theme(legend.title = element_text(size=12))
+matsel
+
+
+```
+That "dome-shaped" curve suggests that fish become fully selected to the fishery at age six, then rapidly become invulnerable again. Importantly, it assumes that only a fraction of the mature fish (ages to the right of the maturity curve) are vulnerable to the fishery, implying that the fishery could fish quite hard on the stock because there is a large unseen (or "cryptic") spawning biomass that can keep contributing new recruits to the population.
+
+*Not sure if we need all this but we should make some comment about that weird selectivity curve. I was wondering whether to refit the model with the alternative asymptotic selectivities but I am thinking we shouldn't so we can isolate the effects of selectivity on reference points*
+
+Sometimes there is a well-understood mechanism for dome-shaped selectivity (e.g., older fish migrate into deep water where the fishery can't reach them). However, dome-shaped selectivity curves should be used with caution (**REF**). They are often used to explain fewer than expected older fish in the fishery. However, it is important to note that fewer than expected old fish can also result from misspecified natural or fishing mortality. Are the fish hiding in deeper water or are they dead? Whichever of these mechanisms is true makes a huge difference to how hard we can fish this stock and our view of spawning stock size. This should highlight that estimates of natural mortality and selectivity can be highly confounded in stock assessment models and for this reason asymptotic selectivity curves are often assumed if there is no established mechanism for dome-shaped selectivity (**REF**). For the purposes of this exercise, we will also look at an asymptotic selectivity curve.
+
+```{r}
+
+matsel <- BI %>% 
+  select(age,mat,sel) %>%
+  # Add asymptotic selectivity
+  mutate(SelectivityAsym=sel) %>% 
+  mutate(SelectivityAsym = replace(SelectivityAsym, age>6,1)) %>% 
+  melt(id="age", variable.name="Schedule",value.name="Proportion") %>%
+  # Rename labels mat, sel and age for prettier plotting
+  mutate(Schedule=as.character(Schedule)) %>% 
+  mutate(Schedule = replace(Schedule, Schedule=="mat","Maturity"),
+         Schedule = replace(Schedule, Schedule=="sel","Selectivity")) %>% 
+  rename("Age"=age) %>%
+  ggplot() + 
+  geom_line(mapping=aes(x=Age,y=Proportion,colour=Schedule, linetype=Schedule), size=1.5) + 
+  theme_classic() + 
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.text.y = element_text(size=12))+
+  theme(axis.title.x = element_text(size=12, face="bold"))+
+  theme(axis.title.y = element_text(size=12, face="bold"))+
+  theme(legend.title = element_text(size=12, face="bold"))+
+  theme(legend.title = element_text(size=12))
+matsel
+
+
+```
+
+If we were doing a real stock assesment, we would refit the model two ways: once assuming asymptotic selectivity and again allowing for dome-shaped selectivity. We might even allow for time-varying selectivity. However, for the purpose of isolating the effects of selectivity on reference points, we will just use the two selectivities above and hold all the other parameters constant. But be aware that refitting the model with a different selectivity curve would result in changes in several other parameter estimates.
+
+
+## Equilibrium calculations
+
+Now we look at the equilibrium calculations used to calculate reference points, given a set of model parameters. These exercises use deterministic parameter values but please be aware that stock assessments estimate parameters with uncertainty and that this uncertainty carries through into the reference points.
+
+
+## Equilibrium per-recruit calculations
+
+As for the simpler surplus production model in the previous exercise, the equilibrium unfished biomass is the biomass that will result from running out the population model for a long period without fishing under constant average conditions. Usually with reference points we talk about spawning biomass (SSB), as this is the component of the stock we are most interested in tracking.
+
+Age structured models track the numbers of fish over age and time. Therefore, to calculate spawning biomass, we need to track the weight at age and maturity at age, as well as mortality at age. 
+
+*... More to come ...*
+
+The equilibrium unfished SSB (SSB~0~) can be calculated from the equilibrium unfished SSB-per-recruit ($\phi$~0~) and an estimate of unfished recruitment *R*~0~. 
+
+*Add something about "incidence functions" see Walters Martell Box 3.1. In general, a bit more info about what we are calculating here and why.*
+
+$\phi$~0~ is estimated from the equilibrium survivorship-at-age ($s_{a}$), the weight-at-age ($w_{a}$), and the maturity-at-age ($m_{a}$) at *F* = 0.
 
 Equilibrium SSB-per-recruit at a given *F* ($\phi_F$) is calculated as:
 
@@ -204,3 +288,7 @@ ggplot(DF) + geom_point(mapping=aes(y=yield_f,x=f)) + theme_classic() +
   geom_vline(xintercept=Fmsy, linetype=2, color = "red") +
   geom_hline(yintercept=MSY, linetype=2, color = "red") 
 ```
+
+## Note about Salmonids
+
+The above calculations apply to iteroparous species, where we need to account for  mortality of mature fish as they age and spawn through the years. We do not have to account for this for semelparous species that spawn only once in their lifetime (such as Salmonids). For these species, the population can be modeled using only the stock-recruit relationship,  often the Ricker (Ricker 1954; 1957) model. MSY-based reference points can be estimated directly from the alpha and beta parameters of the Ricker or Beverton-Holt stock-recruit models (see Hilborn and Walters 1992, Table 7.2). Obviously, calculation of reference points for salmonids is an ongoing area of research which we do not have time for in these webinars. For more detail about reference points for Salmonids see **XXX**. *RF will ask colleagues for some key refs*

@@ -58,7 +58,7 @@ P <- ggplot(SR) + geom_point(mapping=aes(y=Rec,x=SSB,colour=Year)) + theme_class
 P
 ```
 
-Age-structured models keep track of the number of fish that are alive at a given age and time (determined by recruitment, natural mortality and fishing mortality), the proportion mature at a given age (determined by the maturity-at-age schedule), as well as the proportion of fish that are vulnerable (or "available") to the fishery (determined by the selectivity-at-age schedule). For this exercise, it is assumed these schedules are fixed in time. 
+Age-structured models keep track of the number of fish that are alive at a given age and time (determined by recruitment, natural mortality and fishing mortality), the proportion mature at a given age (determined by the maturity-at-age schedule), as well as the proportion of fish that are vulnerable (or "available") to the fishery (determined by the vulnerability-at-age schedule). For this exercise, we assume these schedules are fixed in time. 
 
 ```{r,warning=F, fig.show="hold", out.width="75%"}
 
@@ -69,7 +69,7 @@ matsel <- BI %>%
   # Rename labels mat, sel and age for prettier plotting
   mutate(Schedule=as.character(Schedule)) %>% 
   mutate(Schedule = replace(Schedule, Schedule=="mat","Maturity"),
-         Schedule = replace(Schedule, Schedule=="sel","Selectivity")) %>% 
+         Schedule = replace(Schedule, Schedule=="sel","Vulnerability")) %>% 
   rename("Age"=age) %>%
   ggplot() + 
   geom_line(mapping=aes(x=Age,y=Proportion,colour=Schedule), size=1.5) + 
@@ -81,56 +81,79 @@ matsel <- BI %>%
   theme(legend.title = element_text(size=12, face="bold"))+
   theme(legend.title = element_text(size=12))+
   scale_x_continuous(limits = c(0,12), breaks = 0:12, expand = c(0, 0)) 
-
 matsel
 
 
 ```
 
+In this plot, we can see that the vulnerability curve is to the right of the maturity curve, implying that fish mature and have a chance to spawn before they are vulnerable to the fishery. 
 
+Note that the terms vulnerability and selectivity are used somewhat interchangeably in fisheries. The term vulnerability captures both the "availability" of fish to the gear  (which could be determined by the location of the fishery relative to demographic components of the population, e.g., patterns in depth distribution) and "selectivity" of the fishing gear (e.g., mesh size, hook size or escape panels). However, the term selectivity is in common use as an interchangeable term with vulnerability. In these exercises, we will try to use the term vulnerability to be consistent with the equations but will sometimes use the term selectivity.
 
 ## Equilibrium calculations
 
 Now we look at the equilibrium calculations used to calculate reference points, given a set of model parameters. These exercises use deterministic parameter values but please be aware that stock assessments estimate parameters with uncertainty and that this uncertainty carries through into the reference points.
 
+### Unfished per recruit calculations
 
-## Equilibrium per-recruit calculations
+As for the simpler surplus production model in the previous exercise, the equilibrium unfished biomass is the biomass that would result from running out the population model for a long period without fishing under constant average conditions. Usually reference points  are based on spawning biomass (SSB), as this is the component of the population of most conservation interest.
 
-As for the simpler surplus production model in the previous exercise, the equilibrium unfished biomass is the biomass that will result from running out the population model for a long period without fishing under constant average conditions. Usually with reference points we talk about spawning biomass (SSB), as this is the component of the stock we are most interested in tracking.
+<!-- NOTE TO TIM: I changed s_a to l_a, in keeping with most literature I use (including Walters and Martell 2004). s_a is most commonly used to represent survival rate e^-Z -->
 
-Age-structured models track the numbers of fish over age and time. Therefore, to calculate SSB we need to track the weight-at-age and maturity-at-age, as well as mortality-at-age. 
-
-*... More to come ...*
-
-The equilibrium unfished SSB (SSB~0~) can be calculated from the equilibrium unfished SSB-per-recruit ($\phi$~0~) and an estimate of unfished recruitment *R*~0~. 
-
-*Add something about "incidence functions" see Walters Martell Box 3.1. In general, a bit more info about what we are calculating here and why.*
-
-$\phi$~0~ is estimated from the equilibrium survivorship-at-age ($s_{a}$), the weight-at-age ($w_{a}$), and the maturity-at-age ($m_{a}$) at *F* = 0.
-
-At a given *F*, the equilibrium SSB-per-recruit ($\phi_F$) is calculated as:
-
-\begin{equation}
-\tag{1}
-{\phi_F} = \sum_{a=a_{rec}}^{a_{max}} s_{a}w_{a}m_{a}
-\end{equation}
-
-At a given *F*, the qquilibrium survivorship-at-age ($s_{a}$) is calculated as:
+However, we can calculate equilibrium model behaviour more efficiently than running out models for many years, using equilibrium "per-recruit" methods, or "incidence functions" (see Walters and Martell 2004, Box 3.1). The equations are similar to those used in the time-dynamic population model, but are based on the idea of survivorship-at-age (*l~a~*), which tracks the proportion of recruits that survive from age to age. In the absence of fishing, equilibrium survivorship is given by
 
 \begin{equation*}
-\tag{2}
-  s_{a} = \left\{ 
+\tag{1}
+  l_{a} = \left\{ 
   \begin{matrix}
     1 & , & a = a_{rec} \\ 
-    s_{a-1}e^{-(M_{a-1}+Fv_{a-1})} & , & 1 < a_{rec} < a_{max} \\ 
-    \frac{s_{a-1}e^{-(M_{a-1}+Fv_{a-1})}}{1-e^{-(M_{a}+Fv_{a})}} & , & a = a_{max}
+    l_{a-1}e^{-(M_{a-1})} & , & 1 < a_{rec} < a_{max} \\ 
+    \frac{l_{a-1}e^{-(M_{a-1}}}{1-e^{-(M_{a})}} & , & a = a_{max}
   \end{matrix}
   \right\}
 \end{equation*}
 
-where $a$ = age, $a_{rec}$ = age-of-recruitment, $a_{max}$ = maximum age (plus group), $M_{a}$ = natural mortality rate-at-age, $F$ = fishing mortality rate, $v_{a}$ = selectivity-at-age. Equations 1 and 2 can be found in Fisheries textbooks [e.g. Equation 1 appears on page XX and Equation 2 appears on page XX of Martell and Walters (2004)]
+where $a$ = age, $a_{rec}$ = age-at-recruitment, $a_{max}$ = maximum age (plus group), $M_{a}$ = natural mortality rate-at-age and *l~a~* is 1, by definition, at $a_{rec}$.
 
-*Note:* The `survivorship_F()` function in source_ftns.R can be used here to calculate $s_{a}$ as shown in Equation 2.
+The equilibrium unfished SSB per recruit ($\phi$~E0~) can then be calculated as the sum-product of the equilibrium survivorship-at-age ($l_{a}$), the weight-at-age ($w_{a}$), and the maturity-at-age ($m_{a}$):
+
+\begin{equation}
+\tag{2}
+{\phi_{E0}} = \sum_{a=a_{rec}}^{a_{max}} l_{a}w_{a}m_{a}
+\end{equation}
+
+where we use the subscript *E* because we assume that SSB is a proxy for eggs produced. We then obtain an estimate of the equilibrium unfished SSB (SSB~0~) from $\phi$~E0~ and an estimate of unfished recruitment *R*~0~, i.e., 
+
+\begin{equation}
+\tag{3}
+{SSB_0} = {SSB_0}{\phi_{E0}}
+\end{equation}
+
+### Per recruit calculations with fishing
+
+In order to calculate MSY-based reference points, we also need to calculate long-term equilibrium population behaviour under constant fishing mortality rates.
+
+At any constant equilibrium fishing mortality *F~e~*, the equilibrium survivorship-at-age $\hat{l_a}$ is a simple modification of Equation 1, accounting for fishing mortality and vulnerability-at-age *v~a~*:
+
+\begin{equation*}
+\tag{4}
+  \hat{l}_{a} = \left\{ 
+  \begin{matrix}
+    1 & , & a = a_{rec} \\ 
+    \hat{l}_{a-1}e^{-(M_{a-1}+F_{e}v_{a-1})} & , & 1 < a_{rec} < a_{max} \\ 
+    \frac{\hat{l}_{a-1}e^{-(M_{a-1}+F_{e}v_{a-1})}}{1-e^{-(M_{a}+F_{e}v_{a})}} & , & a = a_{max}
+  \end{matrix}
+  \right\}
+\end{equation*}
+
+SSB-per-recruit ($\phi_F$) is then given by
+
+\begin{equation}
+\tag{5}
+{\phi_F} = \sum_{a=a_{rec}}^{a_{max}} \hat{l}_{a}w_{a}m_{a}
+\end{equation}
+
+*Note:* The `survivorship_F()` function in source_ftns.R can be used here to calculate $l_{a}$ as shown in Equation 1.
 
 The Beverton-Holt stock-recruitment relationship equation is the ratio of the equilibrium SSB and equilibrium recruitment at *F* = 0: 
 \begin{equation*}
@@ -262,4 +285,12 @@ ggplot(DF) + geom_point(mapping=aes(y=yield_f,x=f)) + theme_classic() +
 
 ## Note about Salmonids
 
-The above calculations apply to iteroparous species, where we need to account for  mortality of mature fish as they age and spawn through the years. We do not have to account for this for semelparous species that spawn only once in their lifetime (such as Salmonids). For these species, the population can be modeled using only the stock-recruit relationship,  often the Ricker (Ricker 1954; 1957) model. MSY-based reference points can be estimated directly from the alpha and beta parameters of the Ricker or Beverton-Holt stock-recruit models (see Hilborn and Walters 1992, Table 7.2). Obviously, calculation of reference points for salmonids is an ongoing area of research which we do not have time for in these webinars. For more detail about reference points for Salmonids see **XXX**. *RF will ask colleagues for some key refs*
+The above calculations apply to iteroparous species, where we need to account for  mortality of mature fish as they age and spawn through the years. We do not have to account for this for semelparous species, such as Salmonids, which spawn only once in their lifetime. For these species, the population can be modeled using only the stock-recruit relationship,  often the Ricker (Ricker 1954) model. MSY-based reference points can be estimated directly from the alpha and beta parameters of the Ricker or Beverton-Holt stock-recruit models (see Hilborn and Walters 1992, Table 7.2). We do not have time to explore estimation of Salmonid reference points in these webinars but see **XXX** for more information. *RF has asked a colleague for some key refs*
+
+## References
+
+Hilborn R. and Walters, C.J. 1992. Quantitative fisheries stock assessment: choice, dynamics and uncertainty. Chapman and Hall, New York. 570 pp.
+
+Ricker, W.E. 1954. Stock and Recruitment. Journal of the Fisheries Research Board of Canada 11(5), 559–623.
+
+Walters, C.J. and Martell, S.J.D. 2004. Fisheries Ecology and Management. Princeton University Press, Princeton, 399 pp.

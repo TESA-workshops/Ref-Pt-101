@@ -113,7 +113,7 @@ However, we can calculate equilibrium model behaviour more efficiently than runn
   \right\}
 \end{equation*}
 
-where $a$ = age, $a_{rec}$ = age-at-recruitment, $a_{max}$ = maximum age (plus group), $M_{a}$ = natural mortality rate-at-age and *l~a~* is 1, by definition, at $a_{rec}$.
+where $a$ = age, $a_{rec}$ = age-at-recruitment, $a_{max}$ = maximum age (plus group), $M_{a}$ = natural mortality rate-at-age and $l_{a}$is 1, by definition, at $a_{rec}$.
 
 The equilibrium unfished SSB per recruit ($\phi$~E0~) can then be calculated as the sum-product of the equilibrium survivorship-at-age ($l_{a}$), the weight-at-age ($w_{a}$), and the maturity-at-age ($m_{a}$):
 
@@ -122,18 +122,18 @@ The equilibrium unfished SSB per recruit ($\phi$~E0~) can then be calculated as 
 {\phi_{E0}} = \sum_{a=a_{rec}}^{a_{max}} l_{a}w_{a}m_{a}
 \end{equation}
 
-where we use the subscript *E* because we assume that SSB is a proxy for eggs produced. We then obtain an estimate of the equilibrium unfished SSB (SSB~0~) from $\phi$~E0~ and an estimate of unfished recruitment *R*~0~, i.e., 
+where we use the subscript *E* because we assume that SSB is a proxy for eggs produced. We then obtain an estimate of the equilibrium unfished SSB (SSB~0~) from $\phi_{E0}$ and an estimate of unfished recruitment $R_{0}$, i.e., 
 
 \begin{equation}
 \tag{3}
-{SSB_0} = {SSB_0}{\phi_{E0}}
+{SSB_0} = {R_0}{\phi_{E0}}
 \end{equation}
 
 ### Per recruit calculations with fishing
 
 In order to calculate MSY-based reference points, we also need to calculate long-term equilibrium population behaviour under constant fishing mortality rates.
 
-At any constant equilibrium fishing mortality *F~e~*, the equilibrium survivorship-at-age $\hat{l_a}$ is a simple modification of Equation 1, accounting for fishing mortality and vulnerability-at-age *v~a~*:
+At any constant equilibrium fishing mortality $F_{e}$, the equilibrium survivorship-at-age $\hat{l_a}$ is a simple modification of Equation 1, accounting for fishing mortality and vulnerability-at-age $v_{a}$:
 
 \begin{equation*}
 \tag{4}
@@ -146,32 +146,41 @@ At any constant equilibrium fishing mortality *F~e~*, the equilibrium survivorsh
   \right\}
 \end{equation*}
 
-SSB-per-recruit ($\phi_F$) is then given by
+SSB-per-recruit ($\phi_{Ef}$) is then given by
 
 \begin{equation}
 \tag{5}
-{\phi_F} = \sum_{a=a_{rec}}^{a_{max}} \hat{l}_{a}w_{a}m_{a}
+{\phi_{Ef}} = \sum_{a=a_{rec}}^{a_{max}} \hat{l}_{a}w_{a}m_{a}
 \end{equation}
 
-*Note:* The `survivorship_F()` function in source_ftns.R can be used here to calculate $l_{a}$ as shown in Equation 1.
+*Note:* The `survivorship_F()` function in source_ftns.R can be used here to calculate $\hat{l_a}$ for any *F~e~* as shown in Equation 5. To obtain unfished $l_{a}$, set f=0.
 
-The Beverton-Holt stock-recruitment relationship equation is the ratio of the equilibrium SSB and equilibrium recruitment at *F* = 0: 
+We can also calculate the unfished vulnerable biomass per recruit $\phi_{VB}$:
+
+\begin{equation}
+\tag{6}
+{\phi_{VB}} = \sum_{a=a_{rec}}^{a_{max}} \hat{l}_{a}w_{a}v_{a}
+\end{equation}
+
+We saw in Equation 3 that we could estimate $SSB_{0}$ from an estimate of $R_{0}$ and  $\phi_{E0}$. To estimate $SSB_{MSY}$ (i.e., $B_{MSY}$), we need an estimate of recruitment at $F_{MSY}$ (we will see where $F_{MSY}$ comes from later).
+
+*~~~~~~ RF is up to here and will finish updating this exercise. There is a much simpler way to solve for BMSY ~~~~~~~*
+
+The Beverton-Holt stock-recruitment relationship equation is the ratio of the equilibrium SSB and equilibrium recruitment at *F* = 0 *this is a very odd statement* 
 \begin{equation*}
 \tag{3}
   R = \frac{aSSB}{1+bSSB}
 \end{equation*} 
 
-The unfished SSB-per-recruit can be calculated from Equation 1 and is: 
-\begin{equation*}
-\tag{4}
-  \phi_0 = \frac{SSB_0}{R_0}
-\end{equation*} 
+*Let's just assume we are estimating R0*
 
 The stock-recruitment relationship evaluated at *SSB*~0~ gives the equilibrium unfished recruitment 
 \begin{equation*}
 \tag{5}
 {R_0} = \frac{aSSB_0}{1+bSSB_0} 
 \end{equation*} 
+
+*We don't really need this. We assume the model estimates R0, then we can get SSB0 from eq 3. If we have estimated steepness and R0, then we also already have bha and bhb*
 
 $\phi_{0}$ is estimated from *M* and the biological data, and the $a$ and $b$ stock-recruitment parameters are estimated by the model. With two equations (Equations 4 and 5) and two unknowns (*SSB*~0~, and *R*~0~) we can solve for *SSB*~0~ by rearranging Equation 4 to be ${R_0}$ = $\frac{SSB_0}{\phi_0}$ and setting equal to Equation 5: 
 

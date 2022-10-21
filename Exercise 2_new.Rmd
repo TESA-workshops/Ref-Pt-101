@@ -24,9 +24,9 @@ Here, we will extend the ideas from Exercise 1 to an age-structured model. By th
 
 * Calculate equilibrium MSY reference points (*B*~MSY~, *F*~MSY~, *MSY*) when a stock-recruitment relationship is assumed
 
-We will use outputs from an operating model object from [openMSE](https://openmse.com/) that has been conditioned on age-composition data for the catch and a survey index for an Atlantic cod stock (1980-2008). The natural mortality rate (*M*) was assumed to be 0.2 for ages 0 to 3 and 0.77 for ages 4+. 
+We will use outputs based on an operating model from [openMSE](https://openmse.com/) that has been conditioned on age-composition data for the catch and a survey index for an Atlantic cod stock (1980-2008). The natural mortality rate (*M*) was assumed to be 0.2 for ages 0 to 3 and 0.77 for ages 4+.
 
-A Beverton-Holt stock-recruit relationship was assumed (Beverton and Holt 1957; Hilborn and Walters 1992, Ch 7). The stock-recruit pairs are plotted below and saved in the dataframe **SR**. The biological data (weight-at-age, maturity-at-age, *M*-at-age) and model-estimated selectivity-at-age for age classes 0 to 12+ are saved in the dataframe **BI**.
+We assume a Beverton-Holt stock-recruit relationship (Beverton and Holt 1957; Hilborn and Walters 1992, Ch 7). The stock-recruit pairs are plotted below and saved in the dataframe **SR**. The biological data (weight-at-age, maturity-at-age, *M*-at-age) and model-estimated selectivity-at-age for age classes 0 to 12+ are saved in the dataframe **BI**.
 
 ```{r,warning=F, fig.show="hold", out.width="75%"}
 data <- readRDS("Ex2data.rda")

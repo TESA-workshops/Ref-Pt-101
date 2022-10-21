@@ -20,9 +20,9 @@ knitr::opts_chunk$set(echo = T, warnings= F)
 
 Here, we will extend the ideas from Exercise 1 to an age-structured model. By the end of the exercise you will learn how to:
 
-* Calculate equilibrium unfished biomass when a stock-recruitment relationship is assumed
+* Calculate equilibrium unfished biomass (*B*~0~) when a stock-recruitment relationship is assumed
 
-* Calculate equilibrium MSY reference points when a stock-recruitment relationship is assumed
+* Calculate equilibrium MSY reference points (*B*~MSY~, *F*~MSY~, *MSY*) when a stock-recruitment relationship is assumed
 
 We will use outputs from an operating model object from [openMSE](https://openmse.com/) that has been conditioned on age-composition data for the catch and a survey index for an Atlantic cod stock (1980-2008). The natural mortality rate (*M*) was assumed to be 0.2 for ages 0 to 3 and 0.77 for ages 4+. 
 
@@ -77,11 +77,14 @@ matsel <- BI %>%
   theme(axis.title.x = element_text(size=12, face="bold"))+
   theme(axis.title.y = element_text(size=12, face="bold"))+
   theme(legend.title = element_text(size=12, face="bold"))+
-  theme(legend.title = element_text(size=12))
+  theme(legend.title = element_text(size=12))+
+  scale_x_continuous(limits = c(0,12), breaks = 0:12, expand = c(0, 0)) 
+
 matsel
 
 
 ```
+
 That "dome-shaped" curve suggests that fish become fully selected to the fishery at age six, then rapidly become invulnerable again. Importantly, it assumes that only a fraction of the mature fish (ages to the right of the maturity curve) are vulnerable to the fishery, implying that the fishery could fish quite hard on the stock because there is a large unseen (or "cryptic") spawning biomass that can keep contributing new recruits to the population.
 
 *Not sure if we need all this but we should make some comment about that weird selectivity curve. I was wondering whether to refit the model with the alternative asymptotic selectivities but I am thinking we shouldn't so we can isolate the effects of selectivity on reference points*
@@ -109,13 +112,14 @@ matsel <- BI %>%
   theme(axis.title.x = element_text(size=12, face="bold"))+
   theme(axis.title.y = element_text(size=12, face="bold"))+
   theme(legend.title = element_text(size=12, face="bold"))+
-  theme(legend.title = element_text(size=12))
-matsel
+  theme(legend.title = element_text(size=12))+
+  scale_x_continuous(limits = c(0,12), breaks = 0:12, expand = c(0, 0)) 
 
+matsel
 
 ```
 
-If we were doing a real stock assesment, we would refit the model two ways: once assuming asymptotic selectivity and again allowing for dome-shaped selectivity. We might even allow for time-varying selectivity. However, for the purpose of isolating the effects of selectivity on reference points, we will just use the two selectivities above and hold all the other parameters constant. But be aware that refitting the model with a different selectivity curve would result in changes in several other parameter estimates.
+If we were doing a real stock assessment, we would refit the model two ways: once assuming asymptotic selectivity and again allowing for dome-shaped selectivity. We might even allow for time-varying selectivity. However, for the purpose of isolating the effects of selectivity on reference points, we will just use the two selectivities above and hold all the other parameters constant. But be aware that refitting the model with a different selectivity curve would result in changes in several other parameter estimates.
 
 
 ## Equilibrium calculations
@@ -127,7 +131,7 @@ Now we look at the equilibrium calculations used to calculate reference points, 
 
 As for the simpler surplus production model in the previous exercise, the equilibrium unfished biomass is the biomass that will result from running out the population model for a long period without fishing under constant average conditions. Usually with reference points we talk about spawning biomass (SSB), as this is the component of the stock we are most interested in tracking.
 
-Age structured models track the numbers of fish over age and time. Therefore, to calculate spawning biomass, we need to track the weight at age and maturity at age, as well as mortality at age. 
+Age-structured models track the numbers of fish over age and time. Therefore, to calculate SSB we need to track the weight-at-age and maturity-at-age, as well as mortality-at-age. 
 
 *... More to come ...*
 
@@ -137,14 +141,14 @@ The equilibrium unfished SSB (SSB~0~) can be calculated from the equilibrium unf
 
 $\phi$~0~ is estimated from the equilibrium survivorship-at-age ($s_{a}$), the weight-at-age ($w_{a}$), and the maturity-at-age ($m_{a}$) at *F* = 0.
 
-Equilibrium SSB-per-recruit at a given *F* ($\phi_F$) is calculated as:
+At a given *F*, the equilibrium SSB-per-recruit ($\phi_F$) is calculated as:
 
 \begin{equation}
 \tag{1}
 {\phi_F} = \sum_{a=a_{rec}}^{a_{max}} s_{a}w_{a}m_{a}
 \end{equation}
 
-Equilibrium survivorship-at-age at a given *F* ($s_{a}$) is calculated as:
+At a given *F*, the qquilibrium survivorship-at-age ($s_{a}$) is calculated as:
 
 \begin{equation*}
 \tag{2}

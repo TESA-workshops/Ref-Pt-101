@@ -2,13 +2,15 @@
 # Robyn Forrest Oct 21 2022
 # Estimate the logistic selectivity parameters given selectivity at age
 
+# FOR SIMPLICITY, RUN THIS ONCE TO OVERWRITE THE DOME-SHAPED SELECTIVITY FROM OPENMSE
+
 library(tidyverse)
 library(reshape2)
 
 # data
-data <- readRDS("Ex2data.rda")
-data <- data$BI
-obs <- data$sel
+data <- readRDS("Ex2dataORIG.rda")
+dat <- data$BI
+obs <- dat$sel
 obs[8:length(obs)] <- 1
 age <- 1:length(obs)
 
@@ -57,6 +59,12 @@ p <- ggplot(D)+
   theme_classic()
 print(p)
 
+## Overwrite data$BI$sel - ONLY DO THIS IF YOU WANT TO REPLACE THE SELECTIVITY
+## FROM THE OPENMSE OM
+
+# dat$sel <- Predicted
+# data$BI <- dat
+# saveRDS(data,file="Ex2data.rda")
 
 
 

@@ -20,13 +20,15 @@ knitr::opts_chunk$set(echo = T, warnings= F)
 
 Here, we will extend the ideas from Exercise 1 to an age-structured model. By the end of the exercise you will learn how to:
 
-* Calculate equilibrium unfished biomass (*B*~0~) when a stock-recruitment relationship is assumed
+* Calculate equilibrium unfished biomass (*B*~0~) and equilibrium MSY reference points (*B*~MSY~, *F*~MSY~, *MSY*) when a stock-recruitment relationship is assumed
 
-* Calculate equilibrium MSY reference points (*B*~MSY~, *F*~MSY~, *MSY*) when a stock-recruitment relationship is assumed
+* ...
 
-We will use outputs based on an operating model from [openMSE](https://openmse.com/) that has been conditioned on age-composition data for the catch and a survey index for an Atlantic cod stock (1980-2008). The natural mortality rate (*M*) was assumed to be 0.2 for ages 0 to 3 and 0.77 for ages 4+.
+We will use outputs based on an operating model from [openMSE](https://openmse.com/) that has been conditioned on age-composition data, catch and a survey index for an Atlantic cod stock for ages 4+.
 
-We assume a Beverton-Holt stock-recruit relationship (Beverton and Holt 1957; Hilborn and Walters 1992, Ch 7). The stock-recruit pairs are plotted below and saved in the dataframe **SR**. The biological data (weight-at-age, maturity-at-age, *M*-at-age) and model-estimated selectivity-at-age for age classes 0 to 12+ are saved in the dataframe **BI**.
+We assume a Beverton-Holt stock-recruit relationship (Beverton and Holt 1957; Hilborn and Walters 1992, Ch 7). The stock-recruit pairs are plotted below and saved in the dataframe **SR**. The biological data (weight-at-age, maturity-at-age, *M*-at-age) and assumed selectivity-at-age are saved in the dataframe **BI**.
+
+<!-- NOTE TO TIM: I overwrote BI$sel with values from a logistic curve. See get-sel-pars.R. You shouldn't need to run it as I overwrote the Ex2 rda file but have saved the original -->
 
 ```{r,warning=F, fig.show="hold", out.width="75%"}
 data <- readRDS("Ex2data.rda")
@@ -56,7 +58,7 @@ P <- ggplot(SR) + geom_point(mapping=aes(y=Rec,x=SSB,colour=Year)) + theme_class
 P
 ```
 
-Age-structured models keep track of the proportion of fish that are mature at a given age, as well as the proportion of fish that are vulnerable (or "available") to the fishery, which are determined by the maturity-at-age and selectivity-at-age schedules. For this stock, it is assumed these schedules are fixed in time. 
+Age-structured models keep track of the number of fish that are alive at a given age and time (determined by recruitment, natural mortality and fishing mortality), the proportion mature at a given age (determined by the maturity-at-age schedule), as well as the proportion of fish that are vulnerable (or "available") to the fishery (determined by the selectivity-at-age schedule). For this exercise, it is assumed these schedules are fixed in time. 
 
 ```{r,warning=F, fig.show="hold", out.width="75%"}
 
@@ -85,41 +87,6 @@ matsel
 
 ```
 
-That "dome-shaped" curve suggests that fish become fully selected to the fishery at age six, then rapidly become invulnerable again. Importantly, it assumes that only a fraction of the mature fish (ages to the right of the maturity curve) are vulnerable to the fishery, implying that the fishery could fish quite hard on the stock because there is a large unseen (or "cryptic") spawning biomass that can keep contributing new recruits to the population.
-
-*Not sure if we need all this but we should make some comment about that weird selectivity curve. I was wondering whether to refit the model with the alternative asymptotic selectivities but I am thinking we shouldn't so we can isolate the effects of selectivity on reference points*
-
-Sometimes there is a well-understood mechanism for dome-shaped selectivity (e.g., older fish migrate into deep water where the fishery can't reach them). However, dome-shaped selectivity curves should be used with caution (**REF**). They are often used to explain fewer than expected older fish in the fishery. However, it is important to note that fewer than expected old fish can also result from misspecified natural or fishing mortality. Are the fish hiding in deeper water or are they dead? Whichever of these mechanisms is true makes a huge difference to how hard we can fish this stock and our view of spawning stock size. This should highlight that estimates of natural mortality and selectivity can be highly confounded in stock assessment models and for this reason asymptotic selectivity curves are often assumed if there is no established mechanism for dome-shaped selectivity (**REF**). For the purposes of this exercise, we will also look at an asymptotic selectivity curve.
-
-```{r}
-
-matsel <- BI %>% 
-  select(age,mat,sel) %>%
-  # Add asymptotic selectivity
-  mutate(SelectivityAsym=sel) %>% 
-  mutate(SelectivityAsym = replace(SelectivityAsym, age>6,1)) %>% 
-  melt(id="age", variable.name="Schedule",value.name="Proportion") %>%
-  # Rename labels mat, sel and age for prettier plotting
-  mutate(Schedule=as.character(Schedule)) %>% 
-  mutate(Schedule = replace(Schedule, Schedule=="mat","Maturity"),
-         Schedule = replace(Schedule, Schedule=="sel","Selectivity")) %>% 
-  rename("Age"=age) %>%
-  ggplot() + 
-  geom_line(mapping=aes(x=Age,y=Proportion,colour=Schedule, linetype=Schedule), size=1.5) + 
-  theme_classic() + 
-  theme(axis.text.x = element_text(size=12))+
-  theme(axis.text.y = element_text(size=12))+
-  theme(axis.title.x = element_text(size=12, face="bold"))+
-  theme(axis.title.y = element_text(size=12, face="bold"))+
-  theme(legend.title = element_text(size=12, face="bold"))+
-  theme(legend.title = element_text(size=12))+
-  scale_x_continuous(limits = c(0,12), breaks = 0:12, expand = c(0, 0)) 
-
-matsel
-
-```
-
-If we were doing a real stock assessment, we would refit the model two ways: once assuming asymptotic selectivity and again allowing for dome-shaped selectivity. We might even allow for time-varying selectivity. However, for the purpose of isolating the effects of selectivity on reference points, we will just use the two selectivities above and hold all the other parameters constant. But be aware that refitting the model with a different selectivity curve would result in changes in several other parameter estimates.
 
 
 ## Equilibrium calculations

@@ -377,7 +377,7 @@ Once we have an estimate of \alpha, we can obtain \beta by rearranging Equation 
 
 \begin{equation*}
 \tag{10a}
-  \beta = \frac{ln(\alpha \phi_{E0}}{R_0 \phi_{E0}} 
+  \beta = \frac{ln(\alpha \phi_{E0})}{R_0 \phi_{E0}} 
 \end{equation*}
 
 

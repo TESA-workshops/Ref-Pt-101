@@ -100,7 +100,7 @@ As for the simpler surplus production model in the previous exercise, the equili
 
 <!-- NOTE TO TIM: I changed s_a to l_a, in keeping with most literature I use (including Walters and Martell 2004). s_a is most commonly used to represent survival rate e^-Z -->
 
-However, we can calculate equilibrium model behaviour more efficiently than running out models for many years, using equilibrium "per-recruit" methods, or "incidence functions" (see Walters and Martell 2004, Box 3.1). The equations are similar to those used in the time-dynamic population model, but are based on the idea of survivorship-at-age (*l~a~*), which tracks the proportion of recruits that survive from age to age. In the absence of fishing, equilibrium survivorship is given by
+However, we can calculate equilibrium model behaviour more efficiently than running out models for many years, using equilibrium "per-recruit" methods, or "Botsford's incidence functions" (see Walters and Martell 2004, Box 3.1). The equations are similar to those used in the time-dynamic population model, but are based on the idea of survivorship-at-age ($l_a$), which tracks the proportion of recruits that survive from age to age. In the absence of fishing, equilibrium survivorship is given by
 
 \begin{equation*}
 \tag{1}
@@ -115,14 +115,14 @@ However, we can calculate equilibrium model behaviour more efficiently than runn
 
 where $a$ = age, $a_{rec}$ = age-at-recruitment, $a_{max}$ = maximum age (plus group), $M_{a}$ = natural mortality rate-at-age and $l_{a}$is 1, by definition, at $a_{rec}$.
 
-The equilibrium unfished SSB per recruit ($\phi$~E0~) can then be calculated as the sum-product of the equilibrium survivorship-at-age ($l_{a}$), the weight-at-age ($w_{a}$), and the maturity-at-age ($m_{a}$):
+The equilibrium unfished SSB per recruit ($\phi_{E0}$) can then be calculated as the sum-product of the equilibrium survivorship-at-age ($l_{a}$), the weight-at-age ($w_{a}$), and the maturity-at-age ($m_{a}$):
 
 \begin{equation}
 \tag{2}
 {\phi_{E0}} = \sum_{a=a_{rec}}^{a_{max}} l_{a}w_{a}m_{a}
 \end{equation}
 
-where we use the subscript *E* because we assume that SSB is a proxy for eggs produced. We then obtain an estimate of the equilibrium unfished SSB (SSB~0~) from $\phi_{E0}$ and an estimate of unfished recruitment $R_{0}$, i.e., 
+where we use the subscript *E* because we assume that SSB is a proxy for eggs produced. We then obtain an estimate of the equilibrium unfished SSB ($SSB_0$) from $\phi_{E0}$ and an estimate of unfished recruitment $R_{0}$, i.e., 
 
 \begin{equation}
 \tag{3}
@@ -146,11 +146,11 @@ At any constant equilibrium fishing mortality $F_{e}$, the equilibrium survivors
   \right\}
 \end{equation*}
 
-SSB-per-recruit ($\phi_{Ef}$) is then given by
+SSB-per-recruit ($\phi_{EF}$) is then given by
 
 \begin{equation}
 \tag{5}
-{\phi_{Ef}} = \sum_{a=a_{rec}}^{a_{max}} \hat{l}_{a}w_{a}m_{a}
+{\phi_{EF}} = \sum_{a=a_{rec}}^{a_{max}} \hat{l}_{a}w_{a}m_{a}
 \end{equation}
 
 *Note:* The `survivorship_F()` function in source_ftns.R can be used here to calculate $\hat{l_a}$ for any *F~e~* as shown in Equation 5. To obtain unfished $l_{a}$, set f=0.
@@ -162,38 +162,53 @@ We can also calculate the unfished vulnerable biomass per recruit $\phi_{VB}$:
 {\phi_{VB}} = \sum_{a=a_{rec}}^{a_{max}} \hat{l}_{a}w_{a}v_{a}
 \end{equation}
 
-We saw in Equation 3 that we could estimate $SSB_{0}$ from an estimate of $R_{0}$ and  $\phi_{E0}$. To estimate $SSB_{MSY}$ (i.e., $B_{MSY}$), we need an estimate of recruitment at $F_{MSY}$ (we will see where $F_{MSY}$ comes from later).
+### Deriving *B*~MSY~
 
-*~~~~~~ RF is up to here and will finish updating this exercise. There is a much simpler way to solve for BMSY ~~~~~~~*
+To estimate $SSB_{MSY}$ (i.e., $B_{MSY}$), we need an estimate of recruitment at $F_{MSY}$ (we will estimate $F_{MSY}$ later).  
 
-The Beverton-Holt stock-recruitment relationship equation is the ratio of the equilibrium SSB and equilibrium recruitment at *F* = 0 *this is a very odd statement* 
-\begin{equation*}
-\tag{3}
-  R = \frac{aSSB}{1+bSSB}
-\end{equation*} 
+We saw in Equation 3 that we could estimate $SSB_{0}$ from an estimate of $R_{0}$ and  $\phi_{E0}$. Therefore, we can estimate $SSB_{MSY}$ from equilibrium recruitment at MSY, $R_{MSY}$ and $\phi_{EF}$, where $\phi_{EF}$ is evaluated at $F = F_{MSY}$.
 
-*Let's just assume we are estimating R0*
+To get $R_{MSY}$, we can use the Beverton-Holt stock-recruit function (see footnote for Ricker equations). The Beverton-Holt stock-recruit function is defined by two parameters $\alpha$ and $\beta$ (respectively called BHa and BHb in our data above). 
 
-The stock-recruitment relationship evaluated at *SSB*~0~ gives the equilibrium unfished recruitment 
-\begin{equation*}
-\tag{5}
-{R_0} = \frac{aSSB_0}{1+bSSB_0} 
-\end{equation*} 
-
-*We don't really need this. We assume the model estimates R0, then we can get SSB0 from eq 3. If we have estimated steepness and R0, then we also already have bha and bhb*
-
-$\phi_{0}$ is estimated from *M* and the biological data, and the $a$ and $b$ stock-recruitment parameters are estimated by the model. With two equations (Equations 4 and 5) and two unknowns (*SSB*~0~, and *R*~0~) we can solve for *SSB*~0~ by rearranging Equation 4 to be ${R_0}$ = $\frac{SSB_0}{\phi_0}$ and setting equal to Equation 5: 
-
-\begin{equation*}
-\tag{6}
-\frac{SSB_0}{\phi_0} = \frac{aSSB_0}{1+bSSB_0}
-\end{equation*} 
-
-Diving both sides by *SSB*~0~ and rearranging results in 
 \begin{equation*}
 \tag{7}
-SSB_0 = \frac{a\phi_0-1}{b} 
-\end{equation*} 
+  R = \frac{\alpha SSB}{1+\beta SSB}
+\end{equation*}
+
+We can re-express this function in terms of spawning biomass per recruit, by substituting $SSB =  $\phi_{E0} R$ into Equation 7 and rearranging to get:
+
+\begin{equation*}
+\tag{8}
+R_0 = \frac{\alpha \phi_{E0}-1}{\beta \phi_{E0}} 
+\end{equation*}
+
+(Walters and Martell 2004, Box 3.1). We assume that the model has estimated the leading parameters $R_{0}$ and steepness $h$. The $\alpha$ and $\beta$ parameters are then derived thus :
+
+\begin{equation*}
+\tag{9}
+  \alpha = \frac{4h}{\phi_{E0} (1-h)}
+\end{equation*}
+
+\begin{equation*}
+\tag{10}
+  \beta = \frac{\alpha \phi_{E0}-1}{R_0 \phi_{E0}}
+\end{equation*}
+
+We now have everything we need to calculate $R_{MSY}$ by evaluating Equation 8 with $\phi_{EF}$ evaluated at $F_{MSY}$, i.e., 
+
+\begin{equation*}
+\tag{11}
+R_{MSY} = \frac{\alpha \phi_{EF_{MSY}}-1}{\beta \phi_{EF_{MSY}}} 
+\end{equation*}
+
+and
+
+\begin{equation*}
+\tag{12}
+B_{MSY} = R_{MSY}\phi_{EF_{MSY}} 
+\end{equation*}
+
+
 
 ```{r,message=F}
 surv0 <- survivorship_F(f=0,M=BI$M,n_ages=nrow(BI)) # This is Equation 2 at F = 0

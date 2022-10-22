@@ -169,7 +169,7 @@ We can also calculate the unfished vulnerable biomass per recruit $\phi_{VB}$:
 
 ### Deriving the stock-recruit parameters needed for further calculations
 
-To get $R_\text{MSY}$, we can use the Beverton-Holt stock-recruit function (see footnote for Ricker equations). The Beverton-Holt stock-recruit function is defined by two parameters $\alpha$ and $\beta$ (respectively called BHa and BHb in our data above). 
+To get $R_\text{MSY}$, we can use the Beverton-Holt stock-recruit function (see footnote for Ricker equations). The Beverton-Holt stock-recruit function is defined by two parameters $\alpha$ and $\beta$ (respectively called BHa and BHb in our data above). The $\alpha$ parameter represents the maximum juvenile survival rate, while the $\beta$ parameter determines the degree of compensation in juvenile survival.
 
 \begin{equation*}
 \tag{7}
@@ -223,7 +223,7 @@ BHb
 
 The estimation of *SSB*~0~ can be shown visually as the SSB at the intersection of the SRR and a line through the origin with slope equal to the inverse of $\phi_0$ (i.e., unfished recruits per spawner). This is illustrated below:
 
-*Tim: The calcs are all okay but it's a bit weird that the estimate of B0 is nowhere near the asymptote of the SR curve. I wonder if there was something funky in the estimation of B0 in that model? Maybe the stock wasn't unfished at the start of the series or something? What were the R0 and steepness estimates from the OM?*
+<!-- Tim: The calcs are all okay but it's a bit weird that the estimate of B0 is nowhere near the asymptote of the SR curve. I wonder if there was something funky in the estimation of B0 in that model? Maybe the stock wasn't unfished at the start of the series or something? What were the R0 and steepness estimates from the OM?-->
 
 
 ```{r,out.width="75%"}
@@ -273,9 +273,9 @@ Unlike the surplus production model, there is no analytical solution for $F_\tex
 
 The `MSY_calc()` function in source_ftns.R can be used to find $F_\text{MSY}$, $B_\text{MSY}$ and $\text{MSY}$, given the stock recruit parameters \alpha and \beta and the biological data. The calculations in this function are shown below and follow these steps:
 
-*Tim: I lined up these steps with the equations above, which are a slight rejigging of what you had. I think a little easier to follow. I tried to make the functions match the steps but please check*
+<!--Tim: I lined up these steps with the equations above, which are a slight rejigging of what you had. I think a little easier to follow. I tried to make the functions match the steps. Looks the same but please check-->
 
-*Please note we are not estimating anything here. We already have estimates of alpha and beta so we are just deriving or calculating the rest*
+<!-- note we are not estimating anything here. We already have estimates of alpha and beta so we are just deriving or calculating the rest-->
 
 1) Define a vector for $F$ `f <- seq(0,5,0.001)`;
 
@@ -350,11 +350,43 @@ ggplot(DF) + geom_point(mapping=aes(y=yield_f,x=f)) + theme_classic() +
   geom_hline(yintercept=MSY, linetype=2, color = "red") 
 ```
 
-## Note about Salmonids
+### Footnote: Ricker stock-recruit equations
+
+The Ricker stock-recruit function is defined by two parameters $\alpha$ and $\beta$. The $\alpha$ parameter represents the maximum juvenile survival rate and has exactly the same interpretation as in the Beverton-Holt model. However, the Ricker model can allow for "over-compensation" (lower survival at high stock sizes), so the $\beta$ parameter is not equivalent to that in the Beverton-Holt equation.
+
+\begin{equation*}
+\tag{7a}
+  R = \alpha SSBe^{-\beta SSB}
+\end{equation*}
+
+As for Equation 8, we can re-express this function in terms of spawning biomass per recruit:
+
+\begin{equation*}
+\tag{8a}
+R_0 = \frac{ln(\alpha \phi_{E0})}{\beta \phi_{E0}} 
+\end{equation*}
+
+(Walters and Martell 2004, Box 3.1). We assume that the model has estimated the leading parameters $R_{0}$ and steepness $h$. The $\alpha$ and $\beta$ parameters are then derived thus :
+
+\begin{equation*}
+\tag{9a}
+  \alpha = \frac{5h^{5/4}}{\phi_{E0}}
+\end{equation*}
+
+Once we have an estimate of \alpha, we can obtain \beta by rearranging Equation 8a:
+
+\begin{equation*}
+\tag{10a}
+  \beta = \frac{ln(\alpha \phi_{E0}}{R_0 \phi_{E0}} 
+\end{equation*}
+
+
+
+## Note about Salmonids and other semelparous species
 
 The above calculations apply to iteroparous species, where we need to account for  mortality of mature fish as they age and spawn through the years. We do not have to account for this for semelparous species, such as Salmonids, which spawn only once in their lietime. For these species, the population can be modeled using only the stock-recruit relationship,  often the Ricker (Ricker 1954) model. MSY-based reference points can be estimated directly from the alpha and beta parameters of the Ricker or Beverton-Holt stock-recruit models (see Hilborn and Walters 1992, Table 7.2). We do not have time to explore estimation of Salmonid reference points in these webinars but see **XXX** for more information. *RF has asked a colleague for some key refs*
 
-## references
+## References
 
 Forrest, R.E., Martell, S.J.D., Melnychuk, M.C., Walters, C.J. 2008.An age-structured model with leading management parameters, incorporating age-specific selectivity and maturity. Canadian Journal of Fisheries and Aquatic Sciences, 65(2): 286-296. https://doi.org/10.1139/cjfas-2012-0372
 

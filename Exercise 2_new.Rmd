@@ -12,7 +12,7 @@ source("source_ftns.r")
 knitr::opts_chunk$set(echo = T, warnings= F)
 ```
 
-## Exercise 2: Estimating unfished biomass and MSY reerence points using an age-structured model with a Beverton-Holt stock-recruit relationship
+## Exercise 2: Estimating unfished biomass and MSY reference points using an age-structured model with a Beverton-Holt stock-recruit relationship
 
 ***DISCLAIMER: These are illustrative, deterministic models and should not be used for stock assessment***
 
@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = T, warnings= F)
 
 Here, we will extend the ideas from Exercise 1 to an age-structured model. By the end of the exercise you will learn how to:
 
-* Calculate equilibrium unfished biomass (*B*~0~) and equilibrium MSY reerence points (*B*~MSY~, $F$~MSY~, *MSY*) when a stock-recruitment relationship is assumed
+* Calculate equilibrium unfished biomass (*B*~0~) and equilibrium MSY reference points (*B*~MSY~, $F$~MSY~, *MSY*) when a stock-recruitment relationship is assumed
 
 * ...
 
@@ -37,7 +37,7 @@ SR <- data$SR
 # Dataframe BI with ages (0 to 12+), weight-at-age in kg (waa), proportion mature-at-age (mat), M-at-age, selectivity-at-age (sel)
 BI <- data$BI
 
-# Beverton-Holt parameters a and b (model estimated and used for plotting and reerence point calculations)
+# Beverton-Holt parameters a and b (model estimated and used for plotting and reference point calculations)
 BHa <- data$BHa
 BHb <- data$BHb
 
@@ -92,11 +92,11 @@ Note that the terms vulnerability and selectivity are used somewhat interchangea
 
 ## Equilibrium calculations
 
-Now we look at the equilibrium calculations used to calculate reerence points, given a set of model parameters. These exercises use deterministic parameter values but please be aware that stock assessments estimate parameters with uncertainty and that this uncertainty carries through into the reerence points.
+Now we look at the equilibrium calculations used to calculate reference points, given a set of model parameters. These exercises use deterministic parameter values but please be aware that stock assessments estimate parameters with uncertainty and that this uncertainty carries through into the reference points.
 
 ### Unfished per recruit calculations
 
-As for the simpler surplus production model in the previous exercise, the equilibrium unfished biomass is the biomass that would result from running out the population model for a long period without fishing under constant average conditions. Usually reerence points  are based on spawning biomass (SSB), as this is the component of the population of most conservation interest.
+As for the simpler surplus production model in the previous exercise, the equilibrium unfished biomass is the biomass that would result from running out the population model for a long period without fishing under constant average conditions. Usually reference points  are based on spawning biomass (SSB), as this is the component of the population of most conservation interest.
 
 <!-- NOTE TO TIM: I changed s_a to l_a, in keeping with most literature I use (including Walters and Martell 2004). s_a is most commonly used to represent survival rate e^-Z -->
 
@@ -131,7 +131,7 @@ where we use the subscript *E* because we assume that SSB is a proxy for eggs pr
 
 ### Per recruit calculations with fishing
 
-In order to calculate MSY-based reerence points, we also need to calculate long-term equilibrium population behaviour under constant fishing mortality rates.
+In order to calculate MSY-based reference points, we also need to calculate long-term equilibrium population behaviour under constant fishing mortality rates.
 
 At any constant equilibrium fishing mortality $F_{e}$, the equilibrium survivorship-at-age $\hat{l_a}$ is a simple modification of Equation 1, accounting for fishing mortality and vulnerability-at-age $v_{a}$:
 
@@ -190,7 +190,7 @@ R_0 = \frac{\alpha \phi_{E0}-1}{\beta \phi_{E0}}
   \alpha = \frac{4h}{\phi_{E0} (1-h)}
 \end{equation*}
 
-For more on derivation of \alpha, see Forrest et al. 2010 and reerences therein. Once we have an estimate of \alpha, we can obtain \beta by rearranging Equation 8:
+For more on derivation of \alpha, see Forrest et al. 2010 and references therein. Once we have an estimate of \alpha, we can obtain \beta by rearranging Equation 8:
 
 \begin{equation*}
 \tag{10}
@@ -329,11 +329,11 @@ MSY
 
 ```
 
-The MSY reerence points are plotted below the the yield curves:
+The MSY reference points are plotted below the the yield curves:
 
 ```{r,figures-side, warning = F, fig.show="hold", out.width="75%"}
 
-# Plot Yield vs. Equilibrium SSB with reerence lines at SSBmsy and MSY
+# Plot Yield vs. Equilibrium SSB with reference lines at SSBmsy and MSY
 ggplot(DF) + geom_point(mapping=aes(y=yield_f,x=eq_ssb_f)) + theme_classic() + 
   labs(x="SSB (kt)",y="Yield (kt)") +
   scale_x_continuous(limits = c(0,40), expand = c(0, 0)) +
@@ -341,7 +341,7 @@ ggplot(DF) + geom_point(mapping=aes(y=yield_f,x=eq_ssb_f)) + theme_classic() +
   geom_vline(xintercept=SSBmsy, linetype=2, color = "red") +
   geom_hline(yintercept=MSY, linetype=2, color = "red") 
 
-# Plot Yield vs. F with reerence lines at Fmsy and MSY
+# Plot Yield vs. F with reference lines at Fmsy and MSY
 ggplot(DF) + geom_point(mapping=aes(y=yield_f,x=f)) + theme_classic() + 
   labs(x="F",y="Yield (kt)") +
   scale_x_continuous(limits = c(0,1.5), expand = c(0, 0)) +
@@ -352,13 +352,13 @@ ggplot(DF) + geom_point(mapping=aes(y=yield_f,x=f)) + theme_classic() +
 
 ## Note about Salmonids
 
-The above calculations apply to iteroparous species, where we need to account for  mortality of mature fish as they age and spawn through the years. We do not have to account for this for semelparous species, such as Salmonids, which spawn only once in their lietime. For these species, the population can be modeled using only the stock-recruit relationship,  often the Ricker (Ricker 1954) model. MSY-based reerence points can be estimated directly from the alpha and beta parameters of the Ricker or Beverton-Holt stock-recruit models (see Hilborn and Walters 1992, Table 7.2). We do not have time to explore estimation of Salmonid reerence points in these webinars but see **XXX** for more information. *RF has asked a colleague for some key refs*
+The above calculations apply to iteroparous species, where we need to account for  mortality of mature fish as they age and spawn through the years. We do not have to account for this for semelparous species, such as Salmonids, which spawn only once in their lietime. For these species, the population can be modeled using only the stock-recruit relationship,  often the Ricker (Ricker 1954) model. MSY-based reference points can be estimated directly from the alpha and beta parameters of the Ricker or Beverton-Holt stock-recruit models (see Hilborn and Walters 1992, Table 7.2). We do not have time to explore estimation of Salmonid reference points in these webinars but see **XXX** for more information. *RF has asked a colleague for some key refs*
 
-## Reerences
+## references
 
 Forrest, R.E., Martell, S.J.D., Melnychuk, M.C., Walters, C.J. 2008.An age-structured model with leading management parameters, incorporating age-specific selectivity and maturity. Canadian Journal of Fisheries and Aquatic Sciences, 65(2): 286-296. https://doi.org/10.1139/cjfas-2012-0372
 
-Forrest, R.E., McAllister, M.K., Dorn, M., Martell, S.J.D, Stanley, R.. 2010.Hierarchical Bayesian estimation of productivity and reerence points for Pacific rockfishes (Sebastes spp.) under alternative assumptions about the stock-recruit function. Canadian Journal of Fisheries and Aquatic Sciences, 67(10): 1611-1634. https://doi.org/10.1139/F10-077
+Forrest, R.E., McAllister, M.K., Dorn, M., Martell, S.J.D, Stanley, R.. 2010.Hierarchical Bayesian estimation of productivity and reference points for Pacific rockfishes (Sebastes spp.) under alternative assumptions about the stock-recruit function. Canadian Journal of Fisheries and Aquatic Sciences, 67(10): 1611-1634. https://doi.org/10.1139/F10-077
 
 Hilborn R. and Walters, C.J. 1992. Quantitative fisheries stock assessment: choice, dynamics and uncertainty. Chapman and Hall, New York. 570 pp.
 

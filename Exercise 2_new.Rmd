@@ -28,7 +28,7 @@ We will use outputs based on an operating model from [openMSE](https://openmse.c
 
 We assume a Beverton-Holt stock-recruit relationship (Beverton and Holt 1957; Hilborn and Walters 1992, Ch 7). The stock-recruit pairs are plotted below and saved in the dataframe **SR**. The biological data (weight-at-age, maturity-at-age, *M*-at-age) and assumed selectivity-at-age are saved in the dataframe **BI**.
 
-<!-- NOTE TO TIM: I overwrote BI$sel with values from a logistic curve. See get-sel-pars.R. You shouldn't need to run it as I overwrote the Ex2 rda file but have saved the original. Please could you add the estimate of steepness from the OM to the dataset? -->
+<!-- NOTE TO TIM: I overwrote BI$sel with values from a logistic curve. See get-sel-pars.R. You shouldn't need to run it as I overwrote the Ex2 rda file but have saved the original. Please could you add the estimate of steepness and R0 from the OM to the dataset? -->
 
 ```{r,warning=F, fig.show="hold", out.width="75%"}
 data <- readRDS("Ex2data.rda")
@@ -210,7 +210,9 @@ SSB0
 
 # Show that the values of alpha and beta we derived are consistent with the estimates provided in the data
 
-# NEED THE STEEPNESS FROM THE OM
+# NEED THE STEEPNESS FROM THE OM. It would also be good to have R0 to show consistency
+#   between the BHa and BHb parameters and R0 and Steepness. Just to show you only need
+#   two estimated leading parameters to get everything else
 # alpha <- 4*steepness/(phiE0(1-steepness))
 # alpha
 # BHa
@@ -223,7 +225,7 @@ BHb
 
 The estimation of *SSB*~0~ can be shown visually as the SSB at the intersection of the SRR and a line through the origin with slope equal to the inverse of $\phi_0$ (i.e., unfished recruits per spawner). This is illustrated below:
 
-<!-- Tim: The calcs are all okay but it's a bit weird that the estimate of B0 is nowhere near the asymptote of the SR curve. I wonder if there was something funky in the estimation of B0 in that model? Maybe the stock wasn't unfished at the start of the series or something? What were the R0 and steepness estimates from the OM?-->
+<!-- Tim: The calcs are all okay but it's a bit weird that the estimate of B0 is nowhere near the asymptote of the SR curve. I wonder if there was something funky in the estimation of B0 in that model? Maybe the stock wasn't unfished at the start of the series or something? Maybe because M varies with age? What were the R0 and steepness estimates from the OM?-->
 
 
 ```{r,out.width="75%"}

@@ -1,5 +1,5 @@
 ---
-title: "DFO Reference Points 101 (Revised draft)"
+title: "DFO Reference Points 101"
 output: html_document
 author: "Tim Barrett and Robyn Forrest"
 date: "November 2022"
@@ -12,40 +12,90 @@ library(kableExtra)
 knitr::opts_chunk$set(echo = T, warnings= F)
 ```
 
-## Exercise 3: Reference points using an age-structured model. Influence of *h*, *M*, and selectivity on *SSB*~MSY~ and *SSB*~0~. Introducing the proxy F~SPR~.
+## Exercise 3: 
+## Reference points using an age-structured model. Influence of *h*, *M*, and selectivity on *F*~MSY~, *SSB*~MSY~ and *SSB*~0~.
 
 ***DISCLAIMER: These are illustrative, deterministic models and should not be used for stock assessment***
 
 **Run the R chunks in Rstudio using the green arrow in each chunk. Run individual lines in the chunks using ctrl+enter. If you want to explore further, you can add your own R code inside any of the chunks, or add your own chunks using ctrl+alt+i. Click on the Knit button in Rstudio to create the document.**
 
-Here, we will use the `MSYcalcs()` function that we explored in Exercise 2 to calculate *F*~MSY~, *SSB*~MSY~, and *SSB*~0~ for various models with different model assumptions for the same stock. By the end of the exercise you will get a feel for:
+Here, we will use the `MSYcalc()` function that we explored in Exercise 2 to calculate $F_{MSY}$, $SSB_{MSY}$, and $SSB_0$ for various operating models (OMs) with different model assumptions for the same stock. By the end of the exercise you will get a feel for:
 
-* The influence of *h* on reference point estimates
+* The influence of $h$ on reference point estimates
 
-* The influence of *M* on reference point estimates
+* The influence of $M$ on reference point estimates
 
-* The influence of selectivity on reference point estimates
+* The influence of $selectivity$ on reference point estimates
 
-Seven operating models were conditioned to age-composition data for the catch and a survey index for a herring stock (1968-2020) using various assumptions for *h* and *M* and future selectivity. These operating models were fit specifically for exploration purposes for this exercise. A dataframe **D** is provided that contains the relevant data for the exercise. Here we assume all seven models represent the same stock but with different assumptions on *h*, *M*, and selectivity.
+Seven OMs were conditioned to age-composition data for the catch and a survey index for a herring stock (1968-2020) using various assumptions for $h$ and $M$ and future $selectivity$. These operating models were fit specifically for demonstration purposes for this exercise. A dataframe **D** is provided that contains the relevant data for the exercise. Here we assume all seven OMs represent the same stock but with different assumptions on $h$, $M$, and $selectivity$.
 
-The models were conditioned using a Beverton-Holt stock-recruit relationship (SR) with three different values for steepness *h* (0.6, 0.8, or 0.95) *over the first 5 years ... what does this mean?*, and a constant *M* (0.2, 0.3, or 0.4) for all years and ages. In this exercise we look at the influence of the assumptions of *h*, *M*, and selectivity on estimates of *SSB*~MSY~ and *SSB*~0~.
+The models were conditioned using a Beverton-Holt stock-recruit relationship (SRR). A base model has an assumed steepness ($h$) of 0.8, a constant natural mortality rate ($M$) of 0.3 for all years and ages and $selectivity$ equal to the maturity ogive. Additional models were fit as sensitivities with alternative $h$ (0.6 or 0.95), and alternative $M$ (0.2 or 0.4) and alternative selectivities. In this exercise we look at the influence of the assumptions of these model parameters on reference point estimates.
 
-The assumptions for the seven OMs are listed below:
+The steepness ($h$) of the stock recruitment relationship is the proportion of unexploited recruitment, $R_0$, produced at 0.2 $B_0$ (Mace and Doonan 1988). The ($h$) parameter is bounded between 0.2 (a straight line, recruitment is proportional to SSB) and 1 (a horizontal line, recruitment is constant across SSB) as shown in **Figure 1** below. See slides XX of the PPT for more information.
+
+```{r,echo=F,fig.align='center'}
+hs <- seq(0.2,1,0.1)
+a <- 4*hs/(1-hs)
+b <- a-1
+x=seq(0,1,0.001)
+
+XY <- data.frame(x=x,y=a[1]*x/(1+b[1]*x),h=hs[1])
+for(i in 2:(length(hs)-1)){XY <- rbind(XY,data.frame(x=seq(0,1,0.001),y=a[i]*x/(1+b[i]*x),h=hs[i]))}
+XY <- rbind(XY, data.frame(x=c(0,1),y=c(1,1),h=1)) 
+XY$h <- as.factor(XY$h)
+
+ggplot(XY,aes(x=x,y=y,color=h)) + geom_path() + theme_classic() + 
+  labs(x="Relative SSB",y="Relative Recruitment") +
+  scale_x_continuous(limits = c(0,1), breaks = seq(0,1,0.1),  expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,1), breaks = seq(0,1,0.1),  expand = c(0, 0)) +
+  geom_vline(xintercept = 0.2, linetype = 2) +
+  guides(color = guide_legend(reverse=TRUE))
+```
+<i><b>Figure 1. Predicted relative recruitment (R/R~0~) vs. relative spawning stock biomass (B/B~0~) for various values of steepness (h) of the stock-recruit relationship, where h is the relative recruitment when the relative biomass is 0.2 (vertical dashed line)</i></b> 
+
+
+As we saw in Exercise 2 (or reference to slide numbers), The Beverton-Holt SRR can be parameterized in terms of $\alpha$ and $\beta$ as:
+
+\begin{equation}
+\tag{1}
+{R = \frac{\alpha SSB}{1+\beta SSB}}
+\end{equation}
+
+or in terms of $h$, $R_0$, and $\phi_0$ as: 
+
+\begin{equation}
+\tag{2}
+{R = \frac{4R_0hSSB}{(1-h)R_0\phi_0+(5h-1)SSB}}
+\end{equation}
+
+where $h = \frac{\alpha\phi_0}{4+\alpha\phi_0}$ and $R_0 = \frac{1}{\beta}(\alpha-\frac{1}{\phi_0})$
+
+Here we use the parameterization in **Equation 2**.
+
+*Note*: The SRRs in these operating models are parameterized using a specified fixed $h$ and the mean $\phi_0$ over the first 5 historical years, and $R_0$ is estimated during the OM conditioning. This was done for <u>demonstration purposes only</u> to explore the influence of $h$ on reference point estimates. The practice of fixing $h$ is generally not recommended for stock assessment. Punt (2008) suggests to never base $B_{MSY}$ on an estimate from a stock assessment when $h$ is fixed (and not estimated) in the assessment. Common practice is to use priors for $h$ when fitting assessment models (e.g., Myers et al. 1999; Mangel et al. 2010). 
+
+## The Operating Models
+
+We begin by defining the dataframe **OMpars** with the assumed values of $h$, $M$, and $selectivity$ for the seven OMs. These assumptions are displayed in the Table below:
 
 ```{r}
-# Load the operating models and set steepness, M and selectivity values
+# Generate vectors of h, M, sel for each OM
 OM <- c("A","B","C","D","E","F","G")
 h <- c(0.8,0.6,0.95,rep(0.8,4))
 M <- c(rep(0.3,3),0.2,0.4,rep(0.3,2))
 sel <- c(rep('mat',5),'low','high')
 
 OMpars<-data.frame(OM,h,M,Selectivity=sel,Fmsy=NA,SSBmsy=NA,SSB0=NA)
+```
+
+<i><b>Table 1. OM assumptions for h, M, and selectivity</i></b> 
+```{r,echo=F}
 OMpars[,1:4] %>% kbl(align=c(rep('c',7))) %>% kable_styling()
 ```
-Three selectivity scenarios are explored. The first (*mat*) is the maturity ogive. A *low* and *high* scenario represent the maturity ogive shifted to the left and right by 1 age on the x-axis (Figure x).
 
-```{r, echo=F,warning=F}
+Along with different values of $h$ and $M$, three $selectivity$ scenarios are explored. The first (***mat***) is the maturity ogive. A <i><span style="color:red">low</span></i> and <i><span style="color:blue">high</span></i> scenario represent the maturity ogive shifted to the left and right, respectively, by an age of 1 on the x-axis (**Figure 2**). Note that selectivity changes demonstrated here are simple shifts of the maturity ogive and this was done only for <u>demonstration purposes</u>. In reality, the selectivity curves could be expected to have much different shapes than the maturity ogive and sensitivity analyses may be conducted between curves with different shapes (e.g., dome-shaped vs. logistic) to explore the influence of different structural assumptions on the reference points.
 
+```{r, echo=F,warning=F,fig.align='center'}
 ages <- 0:11
 mat <- 1/(1+exp(10.5-3.67*ages))            
 
@@ -56,13 +106,19 @@ SDF <- data.frame(
   Scenario = rep(c('mat','low','high'),each=12))
 
 # Plot the selectivity
-ggplot()+ theme_classic() + labs(x="Age",y="Maturity") +
+ggplot()+ theme_classic() + labs(x="Age",y="Selectivity") + 
   scale_x_continuous(limits = c(0,11), breaks = 0:11,  expand = c(0, 0)) +
   scale_y_continuous(limits = c(0,1), expand = c(0, 0)) +
   geom_function(fun=function(x) (1/(1+exp(10.5-3.67*x))),colour="black",linetype=1) +
   geom_function(fun=function(x) (1/(1+exp(10.5-3.67*(x-1)))),colour="blue",linetype=2) +
   geom_function(fun=function(x) (1/(1+exp(10.5-3.67*(x+1)))),colour="red",linetype=3)
 ```
+
+<i><b>Figure 2. Three selectivity scenarios as black = maturity ogive, <span style="color:red">red = low (maturity ogive shifted left by one age)</span>, and <span style="color:blue">blue = high (maturity ogive shifted right by one age)</span></i></b> 
+
+## The Data and Source Code for Functions 
+
+The code for the `MSYcalc()` function is in the "source_ftns.r" file and the data required for the exercise are read into dataframe **D**:
 
 ```{r,warning=F,message=F}
 source("source_ftns.r")
@@ -72,10 +128,27 @@ D <- readRDS("Ex3data.rda") # The data required for this exercise is saved in a 
 head(D)
 ```
 
-Estimate *F*~MSY~, *SSB*~MSY~, and *SSB*~0~ for each of the seven OMs. The reference point calculations can be done using the `MSYcalc()` function.
+## Calculate $F_{MSY}$, $B_{MSY}$, and $B_0$ for each OM. 
+
+We begin by calculating the reference points for each of the seven OMs. This can be done using the `MSYcalc()` function in a loop.
+
+Using the `MSYcalc()` function, we provide the at-age vectors for *M* (`M`), weight-at-age (`waa`), maturity (`mat`), selectivity (`sel`) as well as the Beverton-Holt \alpha (`BHa`) and \beta (`BHb`) parameters. The code for the `MSYcalc()` function is in the file "source_ftns.r". The function calculates:
+
+* $F_{MSY}$ as the equilibrium fishing mortality rate ($F_e$) that maximizes yield over a vector of $F_e$ values, 
+
+* $MSY$ as the equilibrium yield from fishing long-term at $F_{MSY}$,
+
+* $B_{MSY}$ (i.e., $SSB_{MSY}$) as the equilibrium SSB from fishing long-term at $F_{MSY}$,
+
+* $B_{0}$ (i.e., $SSB_{0}$) as the equilibrium SSB at $F$ = 0 (i.e., equilibrium unfished SSB), and
+
+* a dataframe with the vector of $F_e$ and the associated SSB-per-recruit ($\phi_F$), yield-per-recruit ($YPR$), equilibrium SSB ($SSB_e$), equilibrium recruitment ($R_e$), and yield at each $F_e$. 
+
+This dataframe can be used for plotting yield curves (e.g., yield vs. SSB or yield vs. *F*)
 
 ```{r,message=F}
-plot_list <- list()
+plot_list <- list() # used to store the dataframes for plotting yield curves
+
 for(i in 1:7){
   # Extract data from D
   M <- D$M[D$OM==OM[i] & D$Age %in% ages]
@@ -86,32 +159,45 @@ for(i in 1:7){
   BHb <- D$BHb[D$OM==OM[i] & !is.na(D$BHb)]
 
   RP <- MSYcalc(M,waa,mat,sel,a=BHa,b=BHb)
-  # Add reference point calculations and save in dataframe OMpars
+  # Add reference point calculations to the OMpars dataframe
   OMpars$Fmsy[i] <- RP$Fmsy
   OMpars$SSBmsy[i] <- round(RP$SSBmsy,1)
   OMpars$SSB0[i] <- round(RP$SSB0,1)
   
+  # Add dataframe with equilibrium estimates over the F vector to plot_list
   plot_list[[i]] <- RP$D
 }
 
+# Add a column with the ratio of Bmsy to B0 to OMpars dataframe
 OMpars$SSBmsy_SSB0 <- round(OMpars$SSBmsy/OMpars$SSB0,3)
 
+# Create a Table to display reference point calculations over three groups (h, M, selectivity)
 OM2 <- rbind(OMpars[2,],OMpars[1,],OMpars[3,],
              OMpars[4,],OMpars[1,],OMpars[5,],
              OMpars[6,],OMpars[1,],OMpars[7,])
+```
+
+<i><b>Table 2. Reference point estimates by OM, with OMs grouped by h, M, and selectivity for comparison purposes</i></b> 
+
+```{r,echo=F}
 row.names(OM2) <- NULL
 OM2 %>% kbl(rownames=F,align=c(rep('c',8)),col.names = gsub("[_]", "/", names(OM2))) %>% kable_styling() %>%
   pack_rows("h", 1, 3) %>%
   pack_rows("M", 4, 6) %>%
   pack_rows("sel", 7, 9) 
 ```
-Here we look at the influence of the different parameters (*h*, *M*, and selectivity) on the reference point estimates)
+Now we explore the influence of the different parameters ($h$, $M$, and $selectivity$) on the reference point estimates. Each is explored under a different tab below.
 
-## Infuence of *h*
+# {.tabset}
+
+## Infuence of *h*  {.tabset}
+
+Three OMs (OMs B, A, and C; **Table 1**) were fit with constant $M$ and $selectivity$ but different $h$. The parameterization of the SRR in terms of $h$ is convenient for practitioners due to the interpretation of $h$ in terms of the resilience of the stock (greater resilience with higher $h$), where $h$ is a standardized measure of productivity that appears to be comparable among stocks (Dorn 2002; Miller and Brooks, 2021). The SRRs for the 3 OMs are shown below in **Figure 3** where the stock-recruit pairs are not very different between OMs but the <u>predicted</u> recruitment from the SRRs at low biomass is very different.
+
 ```{r,warning=F}
-ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions") + ggtitle("h: black=0.8, blue=0.6, red=0.95. Dashed lines have slope 1/phi0. Vertical lines are at SSBmsy") +
-  scale_x_continuous(limits = c(0,1500), expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0,25), expand = c(0, 0)) +
+ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions") + 
+  scale_x_continuous(limits = c(0,1200), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,15), expand = c(0, 0)) +
   # SR pairs
   geom_point(data=D[D$OM==OM[1],],mapping=aes(y=Rec,x=SSB),colour='black') +
   geom_point(data=D[D$OM==OM[2],],mapping=aes(y=Rec,x=SSB),colour='blue') +
@@ -119,19 +205,18 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions"
   # Model estimated SRR
   geom_function(fun=function(x) (D$BHa[D$OM==OM[1] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[1] & !is.na(D$BHb)]*x)),colour="black",linetype=1) +
     geom_function(fun=function(x) (D$BHa[D$OM==OM[2] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[2] & !is.na(D$BHb)]*x)),colour="blue",linetype=1) +
-    geom_function(fun=function(x) (D$BHa[D$OM==OM[3] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[3] & !is.na(D$BHb)]*x)),colour="red",linetype=1) +
-  # Line with slope 1/phi0 through the origin. Note that phi0 does not depend on h so they overlap
-  geom_function(fun=function(x) (1/plot_list[[1]]$phi_f[1]*x),colour="black",linetype=2) +
-  geom_function(fun=function(x) (1/plot_list[[2]]$phi_f[1]*x),colour="blue",linetype=2) +
-  geom_function(fun=function(x) (1/plot_list[[3]]$phi_f[1]*x),colour="red",linetype=2) +
-  # Vertical line at SSBmsy
-  geom_vline(xintercept=OMpars$SSBmsy[1], color = "black") +
-  geom_vline(xintercept=OMpars$SSBmsy[2], color = "blue") +
-  geom_vline(xintercept=OMpars$SSBmsy[3], color = "red") 
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[3] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[3] & !is.na(D$BHb)]*x)),colour="red",linetype=1) 
 ```
 
+<i><b>Figure 3. Model-estimated stock-recruit pairs and stock-recruit relationships for OMs <span style="color:blue">B</span>, A, and <span style="color:red">C</span> with steepness (h) of <span style="color:blue">0.6</span>, 0.8, and <span style="color:red">0.95</span>, respectively</i></b> 
+
+<br>
+$F_{MSY}$:
+
+If a stock is more resilient to fishing pressure (i.e., higher $h$) then we would expect that the stock can be fished harder without risk to recruitment than a stock with lower resilience. We can see from **Table 1** and **Figure 4** that $F_{MSY}$ increases with increasing $h$.
+
 ```{r,warning=F}
-ggplot() + theme_classic() + labs(x="F",y="Yield (kt)") + ggtitle("h: black=0.8, blue=0.6, red=0.95") +
+ggplot() + theme_classic() + labs(x="F",y="Yield (kt)") +
   scale_x_continuous(limits = c(0,5), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0,80), expand = c(0, 0)) +
   geom_path(data=plot_list[[1]],mapping=aes(y=yield_f,x=f),colour='black') +
@@ -141,8 +226,16 @@ ggplot() + theme_classic() + labs(x="F",y="Yield (kt)") + ggtitle("h: black=0.8,
   geom_vline(xintercept=OMpars$Fmsy[2], linetype=2, color = "blue") +
   geom_vline(xintercept=OMpars$Fmsy[3], linetype=2, color = "red") 
 ```
+
+<i><b>Figure 4. Yield vs. F for OMs <span style="color:blue">B</span>, A, and <span style="color:red">C</span>  with steepness (h) of <span style="color:blue">0.6</span>, 0.8, and <span style="color:red">0.95</span>, respectively, with vertical reference lines at F~MSY~</i></b> 
+
+<br>
+$B_{MSY}$:
+
+We can see from **Figure 3** that the stock can be brought to a lower biomass without a significant decline in predicted recruitment when $h$ is higher. With higher $h$, we saw that $F_{MSY}$ is higher, and with a higher *F* we would expect to have a lower equilibrium *B* from fishing at a higher *F*. We can see this relationship in **Table 1** and in a plot of Yield vs. equilibrium SSB (**Figure 5**) where $B_{MSY}$ is lower for higher $h$.
+
 ```{r,warning=F}
-ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") + ggtitle("h: black=0.8, blue=0.6, red=0.95") +
+ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") +
   scale_x_continuous(limits = c(0,600), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0,80), expand = c(0, 0)) +
   geom_path(data=plot_list[[1]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='black') +
@@ -153,12 +246,116 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") + ggtitle("h: bla
   geom_vline(xintercept=OMpars$SSBmsy[3], linetype=2, color = "red") 
 ```
 
-*Note: F > 5 is needed to continue the yield curve for h = 0.95 down to the origin. This can be done by increasing the maximum F in the `MSYcalcs()` function but isn't necessary.*
+<i><b>Figure 5. Yield vs. Equilibrium SSB for OMs <span style="color:blue">B</span>, A, and <span style="color:red">C</span> with steepness (h) of <span style="color:blue">0.6</span>, 0.8, and <span style="color:red">0.95</span>, respectively, with vertical reference lines at B~MSY~</i></b> 
 
-## Infuence of *M*
+*Note: F > 5 is needed to continue the yield curve for h = 0.95 down to the origin. This can be done by increasing the maximum F in the `MSYcalc()` function but isn't necessary to identify B~MSY~.*
+
+<br>
+$B_0$:
+
+In **Table 2** we can see that the equilibrium unfished SSB (i.e., $SSB_0$) increased with increasing $h$ but the magnitude of increase was not very large and was opposite in direction to $SSB_{MSY}$ as $h$ changed. Recall that in Exercise 2 we showed that $SSB_0$ occurred at the intersection of the SRR and a line through the origin with slope equal to $\frac{1}{\phi_0}$. In the region of $SSB_0$, the three SRRs are relatively flat so the intersection of the SRR and line with slope $\frac{1}{\phi_0}$ occur at a similar biomass value on each SRR curve (**Figure 6**).
 
 ```{r,warning=F}
-ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions") + ggtitle("M: black=0.3, blue=0.2, red=0.4. Dashed lines have slope 1/phi0") +
+ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions")+
+  scale_x_continuous(limits = c(0,1200), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,15), expand = c(0, 0)) +
+  # SR pairs
+  geom_point(data=D[D$OM==OM[1],],mapping=aes(y=Rec,x=SSB),colour='black') +
+  geom_point(data=D[D$OM==OM[2],],mapping=aes(y=Rec,x=SSB),colour='blue') +
+  geom_point(data=D[D$OM==OM[3],],mapping=aes(y=Rec,x=SSB),colour='red') +
+  # Model estimated SRR
+  geom_function(fun=function(x) (D$BHa[D$OM==OM[1] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[1] & !is.na(D$BHb)]*x)),colour="black",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[2] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[2] & !is.na(D$BHb)]*x)),colour="blue",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[3] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[3] & !is.na(D$BHb)]*x)),colour="red",linetype=1) +
+  # Line with slope 1/phi0 through the origin. Note that phi0 does not depend on h so they overlap
+  geom_function(fun=function(x) (1/plot_list[[1]]$phi_f[1]*x),colour="grey",linetype=2) +
+  geom_function(fun=function(x) (1/plot_list[[2]]$phi_f[1]*x),colour="grey",linetype=2) +
+  geom_function(fun=function(x) (1/plot_list[[3]]$phi_f[1]*x),colour="grey",linetype=2) +
+  # Vertical line at SSB0
+  geom_vline(xintercept=OMpars$SSB0[1], color = "black",linetype=2) +
+  geom_vline(xintercept=OMpars$SSB0[2], color = "blue",linetype=2) +
+  geom_vline(xintercept=OMpars$SSB0[3], color = "red",linetype=2) 
+```
+
+<i><b>Figure 6. Model-estimated stock-recruit pairs and stock-recruit relationship for OMs <span style="color:blue">B</span>, A, and <span style="color:red">C</span> with steepness (h) of <span style="color:blue">0.6</span>, 0.8, and <span style="color:red">0.95</span>, respectively, with vertical lines at SSB~0~ where the stock-recruit curves intersect the dashed line through the origin with slope $\frac{1}{\phi_0}$.</i></b> 
+
+<br>
+We saw that as $h$ increases, $B_{MSY}$ decreases (and $B_0$) increases. The level of depletion of $B_{MSY}$ (i.e., the ratio $\frac{B_{MSY}}{B_0}$ therefore decreases with increasing *h* (**Table 2**).
+
+The reliability of estimates of $B_{MSY}$ depends on how well $h$ is estimated. Estimates of $h$ can be obtained from meta-analyses (e.g., Thorson et al. 2020) or from life-history characteristics (e.g., Wiff et al. 2018) and these estimates can be can be used to guidance for prior distributions for $h$. Given the sensitivity of the $B_{MSY}$ calculation to $h$, alternative reference points (e.g., proxies for $B_{MSY}$) may be more reliable when $h$ is highly uncertain.
+
+
+## Infuence of *M*  {.tabset}
+
+Three OMs (OMs D, A, and E; **Table 1**) were fit with constant $h$ = 0.8 and constant $selectivity$ but different $M$. The SRRs for the 3 OMs are shown below in **Figure 7**.
+
+$M$ is considered one of the most important parameters in stock assessment but is difficult to estimate (Hamel 2015; Then et al. 2015; Punt et al. 2021). Uncertainty in $M$, is influenced by time varying processes such predation, food availability, disease, and environmental effects (Punt et al. 2021). An additional challenge in estimating $M$ is that it is confounded with $h$ and the growth-rate, and it also declines in selectivity with increasing age (Punt et al. 2021). $M$ is a function of age and sex, but commonly assumed to be a constant in assessment models. $M$ may be fixed, or estimated within an assessment model for which priors on $M$ may be assumed. For simplicity, we assume here that $M$ is a constant across ages and over time.
+
+```{r,warning=F}
+ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions") + 
+  scale_x_continuous(limits = c(0,1500), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,25), expand = c(0, 0)) +
+  # SR pairs
+  geom_point(data=D[D$OM==OM[1],],mapping=aes(y=Rec,x=SSB),colour='black') +
+  geom_point(data=D[D$OM==OM[4],],mapping=aes(y=Rec,x=SSB),colour='blue') +
+  geom_point(data=D[D$OM==OM[5],],mapping=aes(y=Rec,x=SSB),colour='red') +
+  # Model estimated SRR
+  geom_function(fun=function(x) (D$BHa[D$OM==OM[1] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[1] & !is.na(D$BHb)]*x)),colour="black",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[4] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[4] & !is.na(D$BHb)]*x)),colour="blue",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[5] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[5] & !is.na(D$BHb)]*x)),colour="red",linetype=1) 
+```
+
+<i><b>Figure 7. Model-estimated stock-recruit pairs and stock-recruit relationship for OMs <span style="color:blue">D</span>, A, and <span style="color:red">E</span> with natural mortality rate (M) of <span style="color:blue">0.2</span>, 0.3, and <span style="color:red">0.4</span>, respectively.</i></b> 
+
+We can see from **Figure 7** that with higher $M$, more recruits are needed to estimate the historical stock dynamics and higher $M$ shifts the SRR upwards. Unlike $h$, the SSB-per-recruit ($\phi_F$) depends on $M$. Below we explore the influence of changes in $M$ on the reference point calculations
+
+<br>
+$F_{MSY}$:
+
+In general, if a stock has a higher $M$ then it is more productive and can be subjected to a higher *F*. We see this in **Table 1** and a plot of yield relative to *F* (**Figure 8**) where $F_{MSY}$ increases with increasing $M$. 
+
+```{r,warning=F}
+ggplot() + theme_classic() + labs(x="F",y="Yield (kt)") +
+  scale_x_continuous(limits = c(0,5), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,100), expand = c(0, 0)) +
+  geom_path(data=plot_list[[1]],mapping=aes(y=yield_f,x=f),colour='black') +
+  geom_path(data=plot_list[[4]],mapping=aes(y=yield_f,x=f),colour='blue') +
+  geom_path(data=plot_list[[5]],mapping=aes(y=yield_f,x=f),colour='red') +
+  geom_vline(xintercept=OMpars$Fmsy[1], linetype=2, color = "black") +
+  geom_vline(xintercept=OMpars$Fmsy[4], linetype=2, color = "blue") +
+  geom_vline(xintercept=OMpars$Fmsy[5], linetype=2, color = "red") 
+```
+
+<i><b>Figure 8. Yield vs. F for OMs <span style="color:blue">D</span>, A, and <span style="color:red">E</span>  with natural mortality rate (M) of <span style="color:blue">0.2</span>, 0.3, and <span style="color:red">0.4</span>, respectively, with vertical reference lines at F~MSY~</i></b> 
+
+<br>
+$B_{MSY}$:
+
+The plot of yield vs. equilibrium SSB (**Figure 9**) shows a slightly higher estimate of $B_{MSY}$ with higher $M$ and the maximum yield (i.e., $MSY$ itself) is influenced most strongly by $M$. There is no clear relationship between $B_{MSY}$ and $M$ as demonstrated in **Table 2**.
+
+```{r,warning=F}
+ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") +
+  scale_x_continuous(limits = c(0,700), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,100), expand = c(0, 0)) +
+  geom_path(data=plot_list[[1]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='black') +
+  geom_path(data=plot_list[[4]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='blue') +
+  geom_path(data=plot_list[[5]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='red') +
+  geom_vline(xintercept=OMpars$SSBmsy[1], linetype=2, color = "black") +
+  geom_vline(xintercept=OMpars$SSBmsy[4], linetype=2, color = "blue") +
+  geom_vline(xintercept=OMpars$SSBmsy[5], linetype=2, color = "red") 
+```
+
+<i><b>Figure 9. Yield vs. Equilibrium SSB for OMs <span style="color:blue">D</span>, A, and <span style="color:red">E</span>  with natural mortality rate (M) of <span style="color:blue">0.2</span>, 0.3, and <span style="color:red">0.4</span>, respectively, with vertical reference lines at B~MSY~</i></b> 
+
+*Note: F > 5 is needed to continue the yield curve for M = 0.4 down to the origin. This can be done by increasing the maximum F in the `MSYcalc()` function but isn’t necessary to identify B~MSY~.*
+
+<br>
+$B_{0}$:
+
+Lines through the origin with slope $\frac{1}{\phi_0}$ are shown with the three SRRs in **Figure 10** and intersect the SRRs at a similar SSB. The $B_{0}$ values increase with increasing *M*. Although the ratios of $\frac{B_{MSY}}{B_0}$ decrease slightly with increases in $M$, the changes are not as extreme as those seen for $h$ (**Table 2**).
+
+```{r,warning=F}
+ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions") + 
   scale_x_continuous(limits = c(0,1500), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0,25), expand = c(0, 0)) +
   # SR pairs
@@ -172,37 +369,27 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions"
   # Line with slope 1/phi0 through the origin. Note that phi0 depends on M
   geom_function(fun=function(x) (1/plot_list[[1]]$phi_f[1]*x),colour="black",linetype=2) +
   geom_function(fun=function(x) (1/plot_list[[4]]$phi_f[1]*x),colour="blue",linetype=2) +
-  geom_function(fun=function(x) (1/plot_list[[5]]$phi_f[1]*x),colour="red",linetype=2) 
+  geom_function(fun=function(x) (1/plot_list[[5]]$phi_f[1]*x),colour="red",linetype=2) +
+  # Vertical line at SSB0
+  geom_vline(xintercept=OMpars$SSB0[1], color = "black",linetype=2) +
+  geom_vline(xintercept=OMpars$SSB0[4], color = "blue",linetype=2) +
+  geom_vline(xintercept=OMpars$SSB0[5], color = "red",linetype=2) 
 ```
 
-```{r,warning=F}
-ggplot() + theme_classic() + labs(x="F",y="Yield (kt)") + ggtitle("M: black=0.3, blue=0.2, red=0.4") +
-  scale_x_continuous(limits = c(0,5), expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0,100), expand = c(0, 0)) +
-  geom_path(data=plot_list[[1]],mapping=aes(y=yield_f,x=f),colour='black') +
-  geom_path(data=plot_list[[4]],mapping=aes(y=yield_f,x=f),colour='blue') +
-  geom_path(data=plot_list[[5]],mapping=aes(y=yield_f,x=f),colour='red') +
-  geom_vline(xintercept=OMpars$Fmsy[1], linetype=2, color = "black") +
-  geom_vline(xintercept=OMpars$Fmsy[4], linetype=2, color = "blue") +
-  geom_vline(xintercept=OMpars$Fmsy[5], linetype=2, color = "red") 
-```
+<i><b>Figure 10. Model-estimated stock-recruit pairs and stock-recruit relationship for OMs <span style="color:blue">D</span>, A, and <span style="color:red">E</span> with natural mortality rate (M) of <span style="color:blue">0.2</span>, 0.3, and <span style="color:red">0.4</span>, respectively, with vertical lines at SSB~0~ where the stock-recruit curves intersect the dashed lines through the origin with slope $\frac{1}{\phi_0}$</i></b> 
+
+<br>
+
+Estimates of $M$ influence estimates of $B_0$ and the MSY reference points. In general a higher $M$ results in a higher estimate of $B_0$, a higher $F_{MSY}$, and a lower ratio of $\frac{B_{MSY}}{B_0}$ (He et al. 2011; Szuwalski and Punt 2012; Punt et al. 2021). Although the magnitude of the MSY reference points are influenced by $M$, estimates of $B_{MSY}$ depend more strongly on $h$ and are not impacted substantially by $M$ when $h$ is correctly specified (Punt et al. 2021). 
+
+## Infuence of selectivity {.tabset}
+
+Three OMs (OMs F, A, and G; **Table 1**) were fit with constant $h$ = 0.8 and constant $M$ = 0.3 but different $selectivity$. The selectivity ogives for the 3 OMs are shown below in **Figure 2**.
+
+The influence of selectivity on the reference points estimates is determined by the relationship between selectivity and the mature ogive. A stock will be more resilient to fishing pressure if adults are given the opportunity to spawn before they are vulnerable to the fishery. As such, we would expect that as the selectivity curve is shifted to the right of the maturity ogive, it would increase $F_{MSY}$ and decrease $B_{MSY}$. And as the selectivity curve is shifted to the left of the maturity ogive, it would decrease $F_{MSY}$ and increase $B_{MSY}$. This is demonstrated in **Table 2**, **Figure 11**, and **Figure 12** below. The changes in selectivity also have some influence on $B_0$ and the ratio of $\frac{B_{MSY}}{B_0}$, such that both metrics decrease with shifts in selectivity to the right of the maturity ogive and increase with shifts to the left of the maturity ogive (**Table 2**).
 
 ```{r,warning=F}
-ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") + ggtitle("M: black=0.3, blue=0.2, red=0.4") +
-  scale_x_continuous(limits = c(0,700), expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0,100), expand = c(0, 0)) +
-  geom_path(data=plot_list[[1]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='black') +
-  geom_path(data=plot_list[[4]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='blue') +
-  geom_path(data=plot_list[[5]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='red') +
-  geom_vline(xintercept=OMpars$SSBmsy[1], linetype=2, color = "black") +
-  geom_vline(xintercept=OMpars$SSBmsy[4], linetype=2, color = "blue") +
-  geom_vline(xintercept=OMpars$SSBmsy[5], linetype=2, color = "red") 
-```
-
-## Infuence of selectivity
-
-```{r,warning=F}
-ggplot() + theme_classic() + labs(x="F",y="Yield (kt)") + ggtitle("sel: black=mat, blue=low, red=high") +
+ggplot() + theme_classic() + labs(x="F",y="Yield (kt)") + 
   scale_x_continuous(limits = c(0,5), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0,70), expand = c(0, 0)) +
   geom_path(data=plot_list[[1]],mapping=aes(y=yield_f,x=f),colour='black') +
@@ -213,8 +400,9 @@ ggplot() + theme_classic() + labs(x="F",y="Yield (kt)") + ggtitle("sel: black=ma
   geom_vline(xintercept=OMpars$Fmsy[7], linetype=2, color = "red") 
 ```
 
+<i><b>Figure 11. Yield vs. F for OMs <span style="color:blue">D</span>, F, and <span style="color:red">G</span> with selectivity scenarios <span style="color:blue">low</span>, maturity ogive, and <span style="color:red">high</span>,respectively, with vertical reference lines at F~MSY~</i></b> 
 ```{r,warning=F}
-ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") + ggtitle("sel: black=mat, blue=low, red=high") +
+ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") + 
   scale_x_continuous(limits = c(0,600), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0,70), expand = c(0, 0)) +
   geom_path(data=plot_list[[1]],mapping=aes(y=yield_f,x=eq_ssb_f),colour='black') +
@@ -224,3 +412,31 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") + ggtitle("sel: b
   geom_vline(xintercept=OMpars$SSBmsy[6], linetype=2, color = "blue") +
   geom_vline(xintercept=OMpars$SSBmsy[7], linetype=2, color = "red") 
 ```
+
+<i><b>Figure 12. Yield vs. Equilibrium SSB for OMs <span style="color:blue">F</span>, A, and <span style="color:red">G</span> selectivity scenarios <span style="color:blue">low</span>, maturity ogive, and <span style="color:red">high</span>,respectively, with vertical reference lines at B~MSY~</i></b> 
+
+*Note: F > 5 is needed to continue the yield curve for the high selectivity scenario down to the origin. This can be done by increasing the maximum F in the `MSYcalc()` function but isn’t necessary to identify B~MSY~.*
+
+# References:
+
+Dorn, M.W. 2002. Advice on west coast rockfish harvest rates from Bayesian meta-analysis of stock-recruit relationships. North American Journal of Fisheries Management, 22: 280-300.
+
+Hamel, O.S. 2015. A method for calculating a meta-analytical prior for the natural mortality rate using multiple life history correlates. ICES Journal of Marine Science, 72: 62-69.
+
+He, X., Ralston, S., and MacCall, A.D. 2011. Interactions of age-dependent mortality and selectivity functions in age-based stock assessment models. Fishery Bulletin, 109: 198-216.
+
+Mangel, M., Brodziak, J., and DiNard, G. 2010. Reproductive ecology and scientific inference of steepness: a fundamental metric of population dynamics and strategic fisheries management. Fish and Fisheries, 11: 89-104. 
+
+Myers, R.A., Bowen, K.G., and Barrowman, N.J. 1999. Maximum reproductive rate of fish at low population sizes. Canadian Journal of Fisheries and Aquatic Sciences, 56(12): 2404-2419.
+
+Punt, A.E. 2008. Refocusing stock assessment in support of policy evaluation. In: Fisheries for Global Welfare and Environment, 5th World Fisheries Congress 2008. Eds: Tsukamoto, K., Kawamura, T., Takeuchi, T., Beard, T.D., and Kaiser, M.J. 139-152pp.
+
+Punt, A.E., Castillo-Jordan, C., Hamel, O.S., Cope, J.M., Maunder, M.N., and Ianelli, J.N. 2021. Consequences of error in natural mortality and its estimation in stock assessment models. Fisheries Research, 233: 105759.
+
+Szuwalski, C., and Punt, A.E. 2012. Identifying research priorities for management under uncertainty: the estimation ability of the stock assessment method used for eastern Bering Sea snow crab (Chionoecetes opilio). Fisheries Research, 134-136, 82-94.
+
+Then, A.Y., Hoenig, J.M., Hall, N.G., and Hewitt, D.A. 2015. Evaluating the predictive performance of empirical estimators of natural mortality rate using information on over 200 fish species. ICES Journal of Marine Science, 72: 82-92.
+
+Thorson, J.T. 2020. Predicting recruitment density dependence and intrinsic growth rate for all fishes worldwide using a data-integrated life-history model. Fish and Fisheries, 21: 237-251.
+
+Wiff, R., Flores, A., Neira, S. and Caneco, B. 2018. Estimating steepness of the stock-recruitment relationship in Chilean fish stocks using meta-analysis. Fisheries Research, 200: 61-67. 

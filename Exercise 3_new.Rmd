@@ -425,6 +425,8 @@ Hamel, O.S. 2015. A method for calculating a meta-analytical prior for the natur
 
 He, X., Ralston, S., and MacCall, A.D. 2011. Interactions of age-dependent mortality and selectivity functions in age-based stock assessment models. Fishery Bulletin, 109: 198-216.
 
+Mace, P.M., and Doonan, I.J. 1988. A generalised bioeconomic simulation model for fish population dynamics. New Zealand Fishery Assessment Research Document 88/4. Fisheries Research Centre, MAFFish, POB 297, Wellington, NZ.
+
 Mangel, M., Brodziak, J., and DiNard, G. 2010. Reproductive ecology and scientific inference of steepness: a fundamental metric of population dynamics and strategic fisheries management. Fish and Fisheries, 11: 89-104. 
 
 Myers, R.A., Bowen, K.G., and Barrowman, N.J. 1999. Maximum reproductive rate of fish at low population sizes. Canadian Journal of Fisheries and Aquatic Sciences, 56(12): 2404-2419.

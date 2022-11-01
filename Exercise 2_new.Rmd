@@ -384,11 +384,11 @@ Once we have an estimate of \alpha, we can obtain \beta by rearranging Equation 
 
 
 
-## Note about Salmonids and other semelparous species
+## Note about Salmonids
 
-The above calculations apply to iteroparous species, where we need to account for  mortality of mature fish as they age and spawn through the years. We do not have to account for this for semelparous species, such as some salmonids (e.g., Pacific salmon), which spawn only once in their lifetime. For these species, the population can be modeled using only the stock-recruit relationship,  often the Ricker model (Ricker 1954), under the assumption that the estimate of recruits are equivalent to the spawners in the subsequent generation, in the absence of fishing. MSY-based reference points can be estimated directly from the alpha and beta parameters of the Ricker or Beverton-Holt stock-recruit models (see Table 7.2, Hilborn and Walters 1992), Scheuerell (2016) for $S_{MSY}$ and $U_{MSY}$, and Holt (2009) and Holt et al. (2009) for $S_{gen}$). 
+The above calculations apply to iteroparous species, where we need to account for  mortality of mature fish as they age and spawn through the years. We do not have to account for this for semelparous species, such as some salmonids (e.g., Pacific salmon), which spawn only once in their lifetime. For these species, the population can be modeled using only the stock-recruit relationship,  often the Ricker model (Ricker 1954), under the assumption that the estimate of recruits is equivalent to the spawners in the subsequent generation, in the absence of fishing. MSY-based reference points can be estimated directly from the alpha and beta parameters of the Ricker or Beverton-Holt stock-recruit models (see Table 7.2, Hilborn and Walters 1992), Scheuerell (2016) for $S_{MSY}$ and $U_{MSY}$, and Holt (2009) and Holt et al. (2009) for $S_{gen}$). In Canada, reference points for Pacific salmon populations are frequently based on assessments which rely on various metrics to assign status. See Pestal et al. (2022), previous Wild Salmon Policy assessments (e.g., Grant et al. 2020; DFO 2015a,2016), and recent papers on Limit Reference Points (LRPs) for Pacific salmon major stocks (Holt et al. In press a; In press b; DFO 2022a). 
 
-In Canada, reference points for Pacific salmon populations are frequently based on assessments which rely on various metrics to assign status. See Pestal et al. (2022), previous Wild Salmon Policy assessments (e.g., Grant et al. 2020; DFO 2015,2016), and recent papers on Limit Reference Points (LRPs) for Pacific salmon major stocks (Holt et al. In press a; In press b; DFO 2022a). For Atlantic salmon, an iteroparous species, reference points are typically based on the egg deposition that results in less than an acceptably low probability that the realized smolt production from freshwater would be less than 50 per cent of the estimated maximum recruitment (DFO 2015; 2022b). We do not have time to explore estimation of salmonid reference points in these webinars but, in addition to the previous references, see Chaput et al. (2012), Portley and Geiger (2014), Grant et al. (2011; 2013), and Holt and Michielsens (2020) for more information. 
+For Atlantic salmon, an iteroparous species, reference points are typically based on the egg deposition that results in less than an acceptably low probability that the realized smolt production from freshwater would be less than 50 per cent of the estimated maximum recruitment (DFO 2015b; 2022b). We do not have time to explore estimation of salmonid reference points in these webinars but, in addition to the previous references, see Chaput et al. (2012), Portley and Geiger (2014), Grant et al. (2011; 2013), and Holt and Michielsens (2020) for more information. 
 
 ## References
 
@@ -410,9 +410,9 @@ Walters, C.J. and Martell, S.J.D. 2004. Fisheries Ecology and Management. Prince
 
 Chaput, G., Cass, A., Grant, S., Huang, A.-M., & Veinott, G. 2012. Considerations for Defining Reference Points for Semelparous Species, with Emphasis on Anadromous Salmonid Species Including Iteroparous Salmonids. DFO Canadian Science Advisory Secretariat Research Document, 2012/146, v + 48 p.
 
-DFO. 2015a. Development of Reference Points for Atlantic Salmon (Salmo Salar) That Conform to the Precautionary Approach. DFO Can. Sci. Advis. Sec. Sci. Advis. Rep., 2015/058.
+DFO. 2015a. Wild Salmon Policy Biological Status Assessment for Conservation Units of Interior Fraser River Coho Salmon (*Oncorhynchus kisutch*). DFO Canadian Science Advisory Secretariat Science Advisory Report, 2015/022.
 
-DFO. 2015b. Wild Salmon Policy Biological Status Assessment for Conservation Units of Interior Fraser River Coho Salmon (*Oncorhynchus kisutch*). DFO Canadian Science Advisory Secretariat Science Advisory Report, 2015/022.
+DFO. 2015a. Development of Reference Points for Atlantic Salmon (Salmo Salar) That Conform to the Precautionary Approach. DFO Can. Sci. Advis. Sec. Sci. Advis. Rep., 2015/058.
 
 DFO. 2016. Integrated Biological Status of Southern British Columbia Chinook Salmon (*Oncorhynchus tshawytscha*) Under the Wild Salmon Policy. DFO Canadian Science Advisory Secretariat Science Advisory Report, 2016/042.
 

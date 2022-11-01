@@ -104,7 +104,7 @@ ggplot(DF) +
 
 ## 2. Numerical projection under constant harvest rates
 
-To help understand the concept of equilibrium reference points, let's look at projecting forward for 100 years under a constant harvest rate *u*. We'll start with the most recent harvest rate (*terminalU*) to show that the population eventually reaches an equilibrium, or steady, state. In the real world we would interpret this as a long-term average rather than exactly the same value every year.
+To help understand the concept of equilibrium reference points, let's look at projecting the population forward for 100 years under a constant harvest rate *u*. We'll start with the most recent harvest rate (*terminalU*) to show that the population eventually reaches an equilibrium, or steady, state. In the real world we would interpret this as a long-term average rather than exactly the same value every year.
 
 ```{r,warning=F}
 
@@ -158,14 +158,14 @@ theme(axis.title.x = element_text(size=12, face="bold"))+
 
 ```
 
-The population reached equilibrium under the constant harvest rate quite quickly. Just to extend this a bit, let's do the same with two different harvest rates: *u* = 0 and *u* = *U*~MSY~, where *U*~MSY~=*r*/2 from the fitted model.
+The plot shows the historical population biomass to the left of the dashed vertical line, and the projected biomass to the right. The population reached equilibrium under the constant harvest rate quite quickly. Just to extend this a bit, let's do the same with four different harvest rates: *u* = 0, *u* = *Uterminal*, *u* = *U*~MSY~, and a high harvest rate that would crash the population (*u* = *r*). Note that *U*~MSY~=*r*/2 from the fitted model.
 
 ```{r,warning=F}
 
 library(reshape2) # Needed for the melt function
 
 # make a vector of values for U and an array P2 for results
-u <- c(0, UMSY)
+u <- c(0,terminalU, UMSY, r*0.96)
 P2 <- array(NA,dim=c(100,length(u),2),dimnames = list(1:100,u,c("Biomass","Catch")))
 
 for(i in 1:length(u)){ #loop over u
@@ -186,7 +186,9 @@ for(i in 1:length(u)){ #loop over u
 pB <- P2[,,1] %>% 
   as.data.frame() %>% 
   rename("0" = 1,
-         UMSY = 2) %>% 
+         Uterminal = 2,
+         UMSY = 3,
+         r = 4) %>% 
   mutate("Year" = pyrs) %>% 
   melt(id="Year",variable="U", value.name="Biomass")
 
@@ -206,9 +208,9 @@ ggplot(pB, aes(Year, Biomass)) +
 
 ```
 
-Fishing constantly at any harvest rate results in the stock coming to some equilibrium biomass. The Schaefer model predicts that the stock will eventually come to carrying capacity *K* under no fishing, and to *B*~MSY~ under a constant harvest rate of *U*~MSY~, as shown in the plot.
+Fishing constantly at any harvest rate results in the stock coming to some equilibrium biomass *B*, ranging between *B* = 0 and *B* = *K*. The Schaefer model predicts that the stock will eventually come to carrying capacity *K* under no fishing, and to *B*~MSY~ under a constant harvest rate of *U*~MSY~, as shown in the plot.
 
-We can see this by comparing final equilibrium values from the above numerical exercise with the analytical predictions of the Schaefer model (i.e., *B*~MSY~ = *K*/2 and *u*~MSY~ = *r*/2). The numerical and analytical solutions for *K* and *B*~MSY~ are identical.
+We can see this by comparing final year equilibrium values from the above numerical exercise with the analytical predictions of the Schaefer model (i.e., *B*~MSY~ = *K*/2 and *u*~MSY~ = *r*/2). The numerical and analytical solutions for *K* and *B*~MSY~ are identical.
 
 ```{r,warning=F}
 
@@ -231,17 +233,17 @@ K/2    # Analytical solution
 
 ```
 
-This is what is meant by "equilibrium reference points", i.e., if we run out a model for a long time under constant harvest rate and constant conditions, it will "equilibrate" at the analytically-predicted values. This is true for more complex, age-structured models as well as this simple SP model.
+This is what is meant by "equilibrium reference points", i.e., if we run out a model for a long time under constant harvest rate and constant conditions, it will "equilibrate" at the analytically-predicted values. We will see in the next exercise that there is no analytical solution for *F*~MSY~ in age-structured models, but the idea that equilibrium reference points represent the results of running out a model for a long time under constant fishing mortality rates is the same (although there are fortunately short-cut numerical methods so we don't have to do this).
 
-Of course, in the real world there are never constant conditions. Reference points represent some long-term average with annual fluctuations around this average. This assumes there are no directional trends or major shifts in model parameters or environmental conditions. This becomes much more complex with statistical catch-at-age models, which may have trends or shifts in parameters such as growth, natural mortality or selectivity-at-age, or in observed population data such as weight-at-age. Calculating reference points under these conditions requires some extra assumptions (such as whether to average time-varying model variables and over what period). These choices can be impactful in terms of interpretation of stock status and advice and should be taken with care.  Impacts of time-varying variables on reference points and advice is an active area of research (e.g., Haltuch et al. 2009; Holt and Michielsens 2020; Zhang et al. 2020). However, in this webinar we are trying to illustrate the basic concepts. We will touch on non-stationarity in Exercise 4, but will not have time for detailed analysis.
+Of course, in the real world there are never constant conditions. Equilibrium reference points such as *B*~MSY~ represent some long-term average with annual fluctuations around this average. This assumes there are no directional trends or major shifts in model parameters or environmental conditions. The problem of non-stationarity becomes much more complex with statistical catch-at-age models, which may have trends or shifts in parameters such as growth, natural mortality or selectivity-at-age, or in observed population data such as weight-at-age. Calculating reference points under these conditions requires some extra assumptions (such as whether to average time-varying variables and over what period), which are often quite subjective. These choices can be impactful in terms of interpretation of reference points and stock status.  Impacts of time-varying variables on reference points and advice is an active area of research (e.g., Haltuch et al. 2009; Holt and Michielsens 2020; Zhang et al. 2020). In this webinar we are trying to illustrate the basic concepts. We will touch on non-stationarity in Exercise 4, but will not have time for detailed analysis.
 
 ## 3. Understanding 'Maximum Sustainable Yield'
 
-We've seen that *B*~MSY~ is an analytical result of the Schaefer model (*K*/2) that can be reproduced numerically by running out the model under a constant harvest rate of *U*~MSY~. Next, we'll repeat Step 2 over a range of harvest rates from 0 to 1 in increments of 0.001 and show that the constant harvest rate *u* that maximizes yield is the same as the estimate of *U*~MSY~ from Section 1. This is shown as the blue dashed line in the equilibrium yield plot below. 
+We've seen that *B*~MSY~ is an analytical property of the Schaefer model (*K*/2), which can be reproduced numerically by running out the model under a constant harvest rate of *U*~MSY~. But where did *U*~MSY~ come from? Next, we'll repeat Step 2 over a range of harvest rates from 0 to 1 in increments of 0.001 and show that the constant harvest rate *u* that maximizes long-term yield is the same as the estimate of *U*~MSY~ from Section 1.
 
-The two-parameter Schaefer model produces a symmetrical yield curve. More complex, non-symmetrical versions of this model exist (e.g,. the Pella-Tomlinson model; Hilborn and Walters 1992) and indeed, similar yield curves are produced by age-structured models. The important concept from this exercise is that *U*~MSY~ (or its instantaneous equivalent *F*~MSY~, which we'll see in Exercise 2) is the long-term harvest rate that would maximize yield in the long-term under stable conditions.
+The two-parameter Schaefer model produces a symmetrical yield curve. More complex, non-symmetrical versions of this model exist (e.g,. the Pella-Tomlinson model; Hilborn and Walters 1992) and, indeed, similar yield curves are produced by age-structured models. The important concept from this exercise is that *U*~MSY~ (or its instantaneous equivalent *F*~MSY~, which we'll see in Exercise 2) is the long-term harvest rate that would maximize yield in the long-term under stable conditions.
 
-Note: In the exercise below, we identify *U*~MSY~ numerically by running out the model under a sequence of harvest rates and identifying the value of *U* that maximizes yield in the long term. The figure below (an inverted parabola) suggests that we could use calculus to find the harvest rate that maximizes yield (i.e., the derivative of yield with respect to *U* = 0; See slides XXX of the powerpoint). This is indeed how most numerical searches for *U*~MSY~ or *F*~MSY~ work. For the purposes of these exercises, however, we will stick with the simple grid search. This most clearly illustrates the concept of maximizing yield, but please be aware that this is the least efficient means of finding *U*~MSY~!
+Note: In the exercise below, we identify *U*~MSY~ numerically by running out the model under a sequence of harvest rates and identifying the value of *U* that maximizes yield in the long term. The figure below (an inverted parabola) suggests that we could use calculus to find the harvest rate that maximizes yield (i.e., the derivative of yield with respect to *U* = 0; See slides **XXX** of the powerpoint). This is indeed how most numerical searches for *U*~MSY~ or *F*~MSY~ work. For the purposes of these exercises, however, we will stick with the simple grid search. This most clearly illustrates the concept of maximizing yield, but please be aware that this is the least efficient means of finding *U*~MSY~!
 
 
 ```{r,warning=F}
@@ -297,6 +299,7 @@ ggplot(EX3)+
   theme(axis.title.y = element_text(size=12, face="bold"))
 
 ```
+The above yield curve shows the final year catch (i.e., yield) under each of the tested harvest rates. It confirms that long-term yield is maximized by fishing at *U*~MSY~, indicated by the blue dashed line. 
 
 ## References
 

@@ -386,7 +386,9 @@ Once we have an estimate of \alpha, we can obtain \beta by rearranging Equation 
 
 ## Note about Salmonids and other semelparous species
 
-The above calculations apply to iteroparous species, where we need to account for  mortality of mature fish as they age and spawn through the years. We do not have to account for this for semelparous species, such as Salmonids, which spawn only once in their lifetime. For these species, the population can be modeled using only the stock-recruit relationship,  often the Ricker (Ricker 1954) model. MSY-based reference points can be estimated directly from the $\alpha$ and $\beta$ parameters of the Ricker or Beverton-Holt stock-recruit models (see Hilborn and Walters 1992, Table 7.2). We do not have time to explore estimation of Salmonid reference points in these webinars but see **XXX** for more information. *RF has asked a colleague for some key refs*
+The above calculations apply to iteroparous species, where we need to account for  mortality of mature fish as they age and spawn through the years. We do not have to account for this for semelparous species, such as some salmonids (e.g., Pacific salmon), which spawn only once in their lifetime. For these species, the population can be modeled using only the stock-recruit relationship,  often the Ricker model (Ricker 1954), under the assumption that the estimate of recruits are equivalent to the spawners in the subsequent generation, in the absence of fishing. MSY-based reference points can be estimated directly from the alpha and beta parameters of the Ricker or Beverton-Holt stock-recruit models (see Table 7.2, Hilborn and Walters 1992), Scheuerell (2016) for $S_{MSY}$ and $U_{MSY}$, and Holt (2009) and Holt et al. (2009) for $S_{gen}$). 
+
+In Canada, reference points for Pacific salmon populations are frequently based on assessments which rely on various metrics to assign status. See Pestal et al. (2022), previous Wild Salmon Policy assessments (e.g., Grant et al. 2020; DFO 2015,2016), and recent papers on Limit Reference Points (LRPs) for Pacific salmon major stocks (Holt et al. In press a; In press b; DFO 2022a). For Atlantic salmon, an iteroparous species, reference points are typically based on the egg deposition that results in less than an acceptably low probability that the realized smolt production from freshwater would be less than 50 per cent of the estimated maximum recruitment (DFO 2015; 2022b). We do not have time to explore estimation of salmonid reference points in these webinars but, in addition to the previous references, see Chaput et al. (2012), Portley and Geiger (2014), Grant et al. (2011; 2013), and Holt and Michielsens (2020) for more information. 
 
 ## References
 
@@ -403,3 +405,42 @@ Ricker, W.E. 1954. Stock and Recruitment. Journal of the Fisheries Research Boar
 Schnute, J.T. and Kronlund, A.R. 1996. A management oriented approach to stock recruitment analysis. Canadian Journal of Fisheries and Aquatic Sciences 53, 1281-1293. https://doi.org/10.1139/f96-069
 
 Walters, C.J. and Martell, S.J.D. 2004. Fisheries Ecology and Management. Princeton University Press, Princeton, 399 pp.
+
+**Salmon references**
+
+Chaput, G., Cass, A., Grant, S., Huang, A.-M., & Veinott, G. 2012. Considerations for Defining Reference Points for Semelparous Species, with Emphasis on Anadromous Salmonid Species Including Iteroparous Salmonids. DFO Canadian Science Advisory Secretariat Research Document, 2012/146, v + 48 p.
+
+DFO. 2015a. Development of Reference Points for Atlantic Salmon (Salmo Salar) That Conform to the Precautionary Approach. DFO Can. Sci. Advis. Sec. Sci. Advis. Rep., 2015/058.
+
+DFO. 2015b. Wild Salmon Policy Biological Status Assessment for Conservation Units of Interior Fraser River Coho Salmon (*Oncorhynchus kisutch*). DFO Canadian Science Advisory Secretariat Science Advisory Report, 2015/022.
+
+DFO. 2016. Integrated Biological Status of Southern British Columbia Chinook Salmon (*Oncorhynchus tshawytscha*) Under the Wild Salmon Policy. DFO Canadian Science Advisory Secretariat Science Advisory Report, 2016/042.
+
+DFO. 2022a. Methodologies and Guidelines for Defining Limit Reference Points for Pacific Salmon. DFO Can. Sci. Advis. Sec. Sci. Advis. Rep., 2022/030.
+
+DFO. 2022b. Definition of Precautionary Approach Reference Points for Atlantic Salmon, DFO Gulf Region. DFO Can. Sci. Advis. Sec. Sci. Advis. Rep, 2022/027.
+
+Grant, S.C.H., MacDonald, B. L., Cone, T. E., Holt, C. A., Cass, A., Porszt, E. J., Hume, J. M. B., & Pon, L. B. 2011. Evaluation of Uncertainty in Fraser Sockeye (*Oncorhynchus Nerka*) Wild Salmon Policy Status Using Abundance and Trends in Abundance Metrics (DFO Can. Sci. Advis. Sec. Res. Doc. No. 2011/087; p. viii + 183).
+
+Grant, S.C.H., & Pestal, G. 2013. Integrated Biological Status Assessment under the Wild Salmon Policy Using Standardized Metrics and Expert Judgement: Fraser River Sockeye Salmon (*Oncorhynchus nerka*) Case Studies. DFO Can. Sci. Advis. Sec. Res. Doc., 2012/106, 137.
+
+Grant, S.C.H., Holt, C.A., Pestal, G., Davis, B.M., & MacDonald, B.L. 2020. The 2017 Fraser Sockeye Salmon (*Oncorhynchus nerka*) Integrated Biological Status Re-Assessments Under the Wild Salmon Policy Using Standardized Metrics and Expert Judgment. DFO Can. Sci. Advis. Sec. Res. Doc., 2018/017, vii + 211 p.
+
+Hilborn, R., Walters, C. J. 1992. Quantitative Fisheries Stock Assessment: Choice, Dynamics and Uncertainty. Springer Science & Business Media.
+
+Holt, C.A. 2009. Evaluation of Benchmarks for Conservation Units in Canada’s Wild Salmon Policy: Technical Documentation (DFO Canadian Science Advisory Secretariat Science Reserach Document No. 2009/059; p. x + 50).
+
+Holt, C.A., Michielsens, C.G.J. 2020. Impact of Time-Varying Productivity on Estimated Stock-Recruitment Parameters and Biological Reference Points. Canadian Journal of Fisheries and Aquatic Sciences, 77(5), 836–847.
+
+Holt, C.A., Cass, A., Holtby, B., & Riddell, B. 2009. Indicators of Status and Benchmarks for Conservation Units in Canada’s Wild Salmon Policy. Canadian Science Advisory Secretariat Science Research Document, 2009/058, 82.
+
+Holt, C.A., Holt, K., Warkentin, L., Wor, C., Connors, B., Grant, S., Huang, A.-M., Marentette, J. (In press a). Guidelines for Defining Limit Reference Points for Pacific Salmon Stock Management Units. Canadian Science Advisory Secretariat Research Document, 202n/nnn.
+
+Holt, K.R., Holt, C.A., Warkentin, L., Wor, C., Davis, B., Arbeider, M., Bokvist, J., Crowley, S., Grant, S., Luedke, W., McHugh, D., Picco, C.,  Van Will, P. (In press b). Case Study Applications of LRP Estimation Methods to Pacific Salmon Stock Management Units. Canadian Science Advisory Secretariat Research Document, 202n/nnnn.
+
+Pestal, G., MacDonald, B.L., Grant, S. C. H., & Holt, C. A. 2022. State of the Salmon: Rapid Status Assessment Approach for Pacific Salmon under Canada’s Wild Salmon Policy. Can. Tech. Rep. Fish. Aquat. Sci, In review.
+
+Portley, N., & Geiger, H.J. 2014. Limit Reference Points for Pacific Salmon Fisheries. North American Journal of Fisheries Management, 34(2), 401–410. https://doi.org/10.1080/02755947.2014.882453
+
+Scheuerell, M.D. 2016. An Explicit Solution for Calculating Optimum Spawning Stock Size from Ricker’s Stock Recruitment Model. PeerJ, 4, e1623. https://doi.org/10.7717/peerj.1623
+

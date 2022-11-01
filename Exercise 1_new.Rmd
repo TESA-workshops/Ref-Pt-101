@@ -298,6 +298,7 @@ ggplot(EX3)+
   theme(axis.title.y = element_text(size=12, face="bold"))
 
 ```
+
 The above yield curve shows the final year catch (i.e., yield) under each of the tested harvest rates. It confirms that long-term yield is maximized by fishing at *U*~MSY~, indicated by the blue dashed line.
 
 Note: The figure above (an inverted parabola) suggests that we could use calculus to find the harvest rate that maximizes yield (i.e., the derivative of yield with respect to *u* = 0; See slides **XXX** of the powerpoint). This is indeed how most numerical searches for *U*~MSY~ or *F*~MSY~ work. For the purposes of these exercises, however, we used a simpler grid search. This most clearly illustrates the concept of maximizing yield, but please be aware that this is the least efficient means of finding *U*~MSY~!

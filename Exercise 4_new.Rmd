@@ -4,7 +4,7 @@ output: html_document
 author: "Tim Barrett and Robyn Forrest"
 date: "November 2022"
 ---
-
+  
 ```{r setup, include=FALSE}
 library(ggplot2)
 library(SAMtool)
@@ -12,195 +12,90 @@ knitr::opts_chunk$set(echo = T, warnings= F)
 ```
 
 ## Exercise 4:
-## Reference points using an age-structured model with a constant stock-recruit relationship but with time-varying growth
+## $F_{MSY}$ Proxy based on Spawning Potential Ratio (SPR)
 
 ***DISCLAIMER: These are illustrative, deterministic models and should not be used for stock assessment***
-
+  
 **Run the R chunks in Rstudio using the green arrow in each chunk. Run individual lines in the chunks using ctrl+enter. If you want to explore further, you can add your own R code inside any of the chunks, or add your own chunks using ctrl+alt+i. Click on the Knit button in Rstudio to create the document.**
+  
+Here we look at the same operating model (OM) from Exercise 4 where growth is time-varying. The objective of this exercise is to explore $F_{MSY}$ and $B_{MSY}$ proxy reference points based on Spawning Potential Ratio (SPR). 
 
-Here we look at one operating model (OM) from Exercise 3 where growth is time-varying. The objective of this exercise is to explore the influence of the time period selected to describe growth on reference points and to demonstrate that when the Beverton-Holt stock recruitment parameters ($\alpha$ and $\beta$) are constant and a component (i.e., $weight$-$at$-$age$) of the unfished SSB-per-recruit ($\phi_0$) changes, the steepness ($h$) must also change.
+The SPR at a given constant, long-term $F$ is the SSB-per-recruit ($\phi$)  divided by the $\phi$ at long-term equilibrium $F =0$ (Gabriel et al. 1989; Clark 1991; Mace and Sissenwine 1993): 
 
-An OM was conditioned to age-composition data for the catch and a survey index for a herring stock (time series of 53 years). An R object is provided for the OM that contains the relevant data for the exercise. The model was conditioned using a Beverton-Holt stock-recruit relationship (SRR) with initial assumed $h$ = 0.8 (some discussion on this at the end of the exercise), and a constant $M$ = 0.3 for all years and ages. The SRR is plotted below with model estimated Beverton-Holt $\alpha$ and $\beta$ parameters. For this exercise we assume for simplicity that selectivity is equal to the maturity ogive and is constant over all years. We assume that $weight$-$at$-$age$ varies annually and here we look at how the changes in $weight$-$at$-$age$ influence $B_0$ and $SSB_{MSY}$.
+\begin{equation}
+\tag{1}
+{SPR_F=\frac{\phi_F}{\phi_0}}
+\end{equation}
 
-We begin by reading in the data and plotting $weight$-$at$-$age$ over the historical time period.
+A fishing mortality rate $F_{X\%SPR}$ represents the *F* that results in X% of $\phi_0$. The value of X that results in $F_{MSY}$ is an inverse function of $h$ (Williams 2002; Punt et al. 2008; Forrest et al., 2010). However, while $F_{MSY}$ is a function of both $h$ and $M$, once X is selected, the calculation of $F_{X\%SPR}$ is independent of $h$, although still sensitive to M (Forrest et al. 2018). A common proxy for $F_{MSY}$ is $F_{40\%SPR}$ (Mace 1994; Clark 2002; Sainsbury 2008). *F*-based reference points can be interpreted in terms of biomass-based reference points as the equilibrium biomass resulting from long-term fishing at the constant specified *F*. Thus, the equilibrium biomass at $F_{40\%SPR}$ is a proxy for $B_{MSY}$, however, $SPR$ percentages in the range of 30-50% are relatively common proxies for $F_{MSY}$(MF 2011; PFMC 2014). In New Zealand’s operational guidance, $F_{40\%SPR}$ corresponds to an $F_{MSY}$ for “medium productivity” stocks, while the SPR for “low” and “high” productivity stocks are 45% and 30%, respectively (MF 2011). See MF (2011) for descriptions of the stock productivity classifications. $F_{50\%SPR}$ has further been suggested by Sainsbury (2008) as a default proxy for $F_{MSY}$ when $h$ is unknown, since it provides a high fraction of $MSY$ for $h$ greater than 0.3. Dorn (2002) recommended fishing mortality rates in the range of $F_{40\%SPR}$ to $F_{60\%SPR}$ should be considered for data-limited West Coast rockfishes.
 
 ```{r,warning=F,message=F}
 source("source_ftns.r")
 datalist <- readRDS("Ex4data.rda")
-# The DF dataframe has the data needed for this exercise
-DF <- datalist$DF
-head(DF)
-# Weight-at-age is time-varying and a matrix of dimension 12 x 53 is provided with the weights-at-age 0 to 11+ for 53 years
+# The D and WAA dataframes have the data needed for this exercise
+D <- datalist$DF
 WAA <- datalist$WAA
-WAA[,1:5]
+# Weight-at-age is time-varying and a matrix of dimension 12 x 53 is provided with the weights-at-age 0 to 11+ for 53 years
+head(D)
+WAA[,49:53]
 ```
 
-Plot of weight-at-age over time:
+## $MSY$ proxies: 40% SPR
 
-```{r,warning=F}
-library(reshape2)
-WAADF <- melt(WAA)
-colnames(WAADF)<-c('Age','Year','Weight')
+Here we estimate $F_{40\%SPR}$ and the equilibrium SSB from fishing at $F_{40\%SPR}$ using the mean weight-at-age from the last 5 years historical years. We use the `MSYcalc()` function and provide the at-age vectors for *M* (`M`), weight-at-age (`waa`), maturity (`mat`), selectivity (`sel`) as well as the Beverton-Holt $\alpha$ (`BHa`) and $\beta$ (`BHb`) parameters. The code for the `MSYcalc()` function is in the file "source_ftns.r". The function calculates:
 
-ggplot(WAADF)+geom_path(aes(y=Weight,x=Year,colour=as.factor(Age))) + theme_classic() +
-    labs(x="Model Year",y="Weight (g)")
-```
+* $F_{MSY}$ as the equilibrium fishing mortality rate ($F_e$) that maximizes yield over a vector of $F_e$ values, 
 
-<i><b>Figure 1. Weight-at-age time series over 53 model years</i></b> 
-<br>
+* $MSY$ as the equilibrium yield from fishing long-term at $F_{MSY}$,
 
-## Influence of changes in weight-at-age on $SSB_0$, and $SSB_{MSY}$
+* $B_{MSY}$ (i.e., $SSB_{MSY}$) as the equilibrium SSB from fishing long-term at $F_{MSY}$,
 
-We first explore the influence of using the mean weight-at-age from 
+* $B_{0}$ (i.e., $SSB_{0}$) as the equilibrium SSB at $F$ = 0 (i.e., equilibrium unfished SSB), and
 
-a) the first 5 years of the time series, and 
-b) the last 5 years of the time series
+* a dataframe with the vector of $F_e$ and the associated SSB-per-recruit ($\phi_F$), yield-per-recruit ($YPR$), equilibrium SSB ($SSB_e$), equilibrium recruitment ($R_e$), and yield at each $F_e$. 
 
-on estimates of the unfished SSB-per-recruit ($\phi_0$), $SSB_0$, and $SSB_{MSY}$.
+The data in this dataframe (defined as **DF** below) is used to identify the $F$ that results in 40% SPR.
 
 ```{r,warning=F,message=F}
-# Unfished survivorship
-surv0 <- survivorship_F(f=0,M=DF$M[1:12],n_ages=12)
+# MSY calc function
+RP <- MSYcalc(M=D$M[1:12],waa=apply(WAA[,49:53],1,mean),mat=D$mat[1:12],sel=D$sel[1:12],a=D$BHa[1],b=D$BHb[1])
+names(RP)
 
-# SSB-per-recruit (g/rec)
-phi0_first5 <- sum(surv0*apply(WAA[,1:5],1,mean)*DF$mat[1:12])
-phi0_first5
-phi0_last5 <- sum(surv0*apply(WAA[,49:53],1,mean)*DF$mat[1:12])
-phi0_last5
+# Preview dataframe 
+DF <- RP$DF
+head(DF)
 
-(phi0_last5-phi0_first5)/phi0_first5
+# Add SPR column to DF
+DF$SPR <- DF$phi_f/DF$phi_f[1] #(SSB-per-recruit)/(SSB-per-recruit at F=0)
+
+# Find the F where SPR is closest to 40%
+Fspr40 <- DF$f[which(abs(DF$SPR-0.4)==min(abs(DF$SPR-0.4)))]
+
+# Compare Fspr40 to Fmsy
+Fspr40
+RP$Fmsy
+
+# The SPR at Fmsy is estimated to be closer to 35%
+DF$SPR[DF$f==round(RP$Fmsy,3)]
+
+# The equilibrium SSB from fishing at Fspr40 is a proxy for SSBmsy
+DF$eq_ssb_f[DF$f==Fspr40]
+RP$SSBmsy
 ```
 
-The change in weight-at-age from the first 5 years of the time series to the last 5 years results in a decrease in $\phi_0$ of about 30%
-
-```{r}
-# SSB0
-SSB0_first5 <- (DF$BHa[1]*phi0_first5-1)/DF$BHb[1]
-SSB0_first5
-SSB0_last5 <- (DF$BHa[1]*phi0_last5-1)/DF$BHb[1]
-SSB0_last5
-(SSB0_last5-SSB0_first5)/SSB0_first5
-```
-
-The change in weight-at-age from the first 5 years of the time series to the last 5 years results in a decrease in $SSB_0$ of about 32%. **Figure 2** shows the SRR with the lines through the origin with slope $\frac{1}{\phi_{0_{first5}}}$ and $\frac{1}{\phi_{0_{last5}}}$ that intersect the SRR at $SSB_{0_{first5}}$ and $SSB_{0_{last5}}$, respectively.
+In the example here, $F_{40\%SPR}$ is estimated as 0.403, lower than the estimate of $F_{MSY}$ which was 0.517. The $F_{MSY}$ estimate is dependent on the $h$ of the SRR. If the $h$ is uncertain or if there are few stock-recruit points at low biomass to inform recruitment dynamics at low biomass (e.g. see **Figure 1**) then the $F_{X\%SPR}$ can serve as a proxy for $F_{MSY}$ that doesn't reply on assumptions of recruitment dynamics at low biomass (Note that the steep drop in the SRR in **Figure 1** occurs below the minimum biomass in the stock-recruit pairs). Here the choice of SPR of 40% was made assuming the stock has a medium productivity, so an assumption of stock productivity is still required to select the percent of SPR to use as a proxy for $F_{MSY}$. The assumption of a $h$ of 0.8 would suggest that the stock is fairly resilient or a bit more productive than "medium" and the $F_{MSY}$ estimate assuming the $h$ is 0.8 results in approximately 35% SPR. The choice of appropriate reference point will ultimately depend on multiple factors including the validity of assumptions of the SRR and stock productivity.
 
 ```{r,warning=F}
-ggplot(DF)+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +
+ggplot(D)+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +
   labs(x="SSB (kt)",y="Age 0 Recruitment in millions") +
   scale_x_continuous(limits = c(0,1200), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0,12), expand = c(0, 0)) +
-  geom_function(fun=function(x) (DF$BHa[1]*x/(1+DF$BHb[1]*x))) +
-  geom_function(fun=function(x) (1/phi0_first5*x),colour="red",linetype=2) +
-  geom_function(fun=function(x) (1/phi0_last5*x),colour="purple",linetype=2) +
-  geom_vline(xintercept=SSB0_first5,color="red") +
-  geom_vline(xintercept=SSB0_last5,color="purple") 
-
+  geom_function(fun=function(x) (D$BHa[1]*x/(1+D$BHb[1]*x))) +
+  geom_function(fun=function(x) (1/DF$phi_f[DF$f==RP$Fmsy]*x),colour="red",linetype=2) +
+  geom_function(fun=function(x) (1/DF$phi_f[DF$f==Fspr40]*x),colour="orange",linetype=2) +
+  geom_vline(xintercept=RP$SSBmsy,color="red") +
+  geom_vline(xintercept=DF$eq_ssb_f[DF$f==Fspr40],color="orange") 
 ```
 
-<i><b>Figure 2. Stock-recruit pairs and model-estimated stock-recruit relationship (SRR) with lines through the origin with slopes $\frac{1}{\phi_{0_{first5}}}$ and $\frac{1}{\phi_{0_{last5}}}$ that intersect the SRR at different *B*~0~ values (vertical lines) for $\phi_{0_{first5}}$ (red) and $\phi_{0_{last5}}$ (purple)</i></b> 
+<i><b>Figure 1. Stock-recruit pairs and model-estimated stock-recruit relationship (SRR) with lines through the origin with slopes $\frac{1}{\phi_F}$ at $F_{MSY}$ (red) and $F_{40\%SPR}$ (orange) that intersect the SRR at $B_{MSY}$ (vertical red line) and the $B_{MSY}$ proxy (equilibrium biomass from fishing at $F_{40\%SPR}$; vertical orange line)</i></b> 
 <br>
-
-Next we look at the influence of the change in weight-at-age (`waa`) on $B_{MSY}$ where the `MSYcalc` function from "source_ftns.r" is used to calculate $B_{MSY}$.
-```{r,warning=F}
-
-RP_first5 <- MSYcalc(M=DF$M[1:12],waa=apply(WAA[,1:5],1,mean),mat=DF$mat[1:12],sel=DF$sel[1:12],a=DF$BHa[1],b=DF$BHb[1])
-RP_last5 <- MSYcalc(M=DF$M[1:12],waa=apply(WAA[,49:53],1,mean),mat=DF$mat[1:12],sel=DF$sel[1:12],a=DF$BHa[1],b=DF$BHb[1])
-
-RP_first5$SSBmsy
-RP_last5$SSBmsy
-
-(RP_last5$SSBmsy-RP_first5$SSBmsy)/RP_first5$SSBmsy
-
-```
-
-The change in weight-at-age from the first 5 years of the time series to the last 5 years results in a decrease in $SSB_{MSY}$ of about 32%. **Figure 2** shows the SRR with the lines through the origin with slope $\frac{1}{\phi_{0_{first5}}}$ and $\frac{1}{\phi_{0_{last5}}}$ that intersect the SRR at $SSB_{0_{first5}}$ and $SSB_{0_{last5}}$, respectively.
-
-```{r,warning=F,message=F}
-
-ggplot(DF)+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +
-  labs(x="SSB (kt)",y="Age 0 Recruitment in millions") +
-  scale_x_continuous(limits = c(0,1200), expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0,12), expand = c(0, 0)) +
-  geom_function(fun=function(x) (DF$BHa[1]*x/(1+DF$BHb[1]*x))) +
-  # SSB0 solid vertical line
-  geom_vline(xintercept=SSB0_first5,color="red") +
-  geom_vline(xintercept=SSB0_last5,color="purple") +
-  # SSBmsy dashed vertical line
-  geom_vline(xintercept=RP_first5$SSBmsy,color="red",linetype=2) +
-  geom_vline(xintercept=RP_last5$SSBmsy,color="purple",linetype=2) 
-
-```
-
-<i><b>Figure 3. Stock-recruit pairs and model-estimated stock-recruit relationship with vertical dashed lines at the *B*~MSY~ values and vertical solid lines at the *B*~0~ values, calculated from $\phi_{0_{first5}}$ (red) and $\phi_{0_{last5}}$ (purple)</i></b> 
-<br>
-
-We can see the influence of temporal changes in a single component of $\phi_0$ (weight-at-age) on the equilibrium reference point calculations in **Figure 3**. We may also have temporal changes in other productivity parameters (e.g., recruitment, maturity-at-age, $M$) that also influence the equilibrium reference points. There are different approaches to addressing temporal change in these productivity parameters. For example, the default guidance from ICES (2021) is to use data from the last ten historical years to describe properties of population biology and the fishery (i.e., weight-at-age, maturity, $M$, and selectivity). If there is evidence of persistent trends in parameters, ICES (2021) suggests that the period can be decreased to 3 to 5 years, and the period can be extended if there is no evidence of trends. This differs from the available guidance from DFO which suggests that as long a time series as possible should be used to capture variability in productivity (DFO 2009) and that truncation of the data series should only be considered if it is unlikely that the change in productivity will reverse in the short- to medium-term due to a mechanistic understanding of a regime shift or current conditions have persisted for an extended period of time (DFO 2013). National DFO guidance is expected to be forthcoming on this issue of dealing with changes in productivity and defining reference points.
-
-## A note on steepness with time-varying growth
-
-In the exercise above, we have assumed that the SRR parameters $\alpha$ and $\beta$ are constant and the SRR is a fixed curve. When this assumption is made and we have changes in $\phi_0$ over time, the $h$ and $R_0$ also also change over time if the SRR is to remain fixed. This can create some challenges in the interpretation of the SRR when it is parameterized in terms of $h$, $R_0$, and $\phi_0$.
-
-Remember that the $h$, $R_0$, and $\phi_0$ parameterization is:
-
-\begin{equation}
-\tag{1}
-{R = \frac{4R_0hSSB}{(1-h)R_0\phi_0+(5h-1)SSB}}
-\end{equation}
-
-With a fixed SRR, parameterized in terms of $\alpha$ and $\beta$, we calculated $SSB_0$ above using a $\phi_0$ calculated with weight-at-age over the first 5 years of the time series and the last 5 years of the time series. This resulted in two values of the equilibrium unfished SSB ($SSB_0$) as:
-
-* $SSB_{0_{first5}}$
-* $SSB_{0_{last5}}$
-
-Each of these estimates result in a different equilibrium unfished recruitment on the SRR:
-
-```{r}
-R0_first5 <- SSB0_first5/phi0_first5
-R0_last5 <- SSB0_last5/phi0_last5
-R0_first5
-R0_last5
-```
-
-From exercise 3 we saw $h = \frac{\alpha\phi_0}{4+\alpha\phi_0}$. We can now calculate $h$ over the first 5 years and over the last 5 years using phi_0.
-
-```{r}
-h_first5 <- (DF$BHa[1]*phi0_first5)/(4+DF$BHa[1]*phi0_first5)
-h_last5 <- (DF$BHa[1]*phi0_last5)/(4+DF$BHa[1]*phi0_last5)
-h_first5
-h_last5
-```
-Here we can see that $h$ of the SRR is 0.8 when calculated using weight-at-age over the first 5 years and 0.736 when using weight-at-age over the last 5 years. $h$ is a producivity parameter that relates to the resilience of the stock and when productivity changes (e.g., weight-at-age here) the *h* changes, even though the SRR curve is fixed. This occurs because the change in weight-at-age influences $\phi_0$, which results in different estimates of $SSB_0$ and $R_0$ on the SRR (see **Figure 4**). Since the definition of $h$ is the proportion of $R_0$, produced at 0.2 $B_0$ (Mace and Doonan 1988; see vertical reference lines at 0.2 $B_0$ in **Figure 4**), the change in weight-at-age influences $h$. When a SRR is parameterized in terms of $h$, $R_0$, and $\phi_0$, the time period associated with the biological and fishery parameters must be fixed to some point in time. In the OM used here, this time period was fixed to the average over the first 5 years which is why the value of $h$ for `h_first5` was 0.8 and matches the assumed $h$ in the OM. The choice of using a 5-year time period when estimating the SRR in the model was an assumption made in the Open MSE software [(openMSE)](https://openmse.com/) which uses an average over the first $A_{50}$ years of data where $A_{50}$ = approximate age at 50% maturation. 
-
-See the Miller and Brooks (2021) paper "Steepness is a slippery slope" for more on time-varying productivity and the parameterization of the SRR.
-
-```{r,warning=F}
-ggplot()+geom_point(data=DF,mapping=aes(y=Rec,x=SSB)) + theme_classic() +
-  labs(x="SSB (kt)",y="Age 0 Recruitment in millions") +
-  scale_x_continuous(limits = c(0,1200), expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0,12), expand = c(0, 0)) +
-  geom_function(fun=function(x) (DF$BHa[1]*x/(1+DF$BHb[1]*x))) +
-  geom_function(fun=function(x) (1/phi0_first5*x),colour="red",linetype=2) +
-  geom_function(fun=function(x) (1/phi0_last5*x),colour="purple",linetype=2) +
-  geom_vline(xintercept=SSB0_first5,color="red") +
-  geom_vline(xintercept=SSB0_last5,color="purple") +
-  geom_vline(xintercept=0.2*SSB0_first5,color="red",linetype=2) +
-  geom_vline(xintercept=0.2*SSB0_last5,color="purple",linetype=2) +
-  geom_point(aes(x=SSB0_first5,y=R0_first5),colour="red") +
-  geom_point(aes(x=SSB0_last5,y=R0_last5),colour="purple") 
-```
-
-<i><b>Figure 4. Stock-recruit pairs and model-estimated stock-recruit relationship (SRR) with lines through the origin with slopes $\frac{1}{\phi_{0_{first5}}}$ (red) and $\frac{1}{\phi_{0_{last5}}}$ (purple) that intersect the SRR at different *B*~0~ values (solid vertical lines) and $R_0$ values (points lying on the SRR at *B*~0~). The dashed vertical lines are at 0.2 *B*~0~ for $\phi_{0_{first5}}$ (red) and $\phi_{0_{last5}}$ (purple)</i></b> 
-<br>
-
-## References
-
-DFO. 2009. A fishery decision-making framework incorporating the precautionary approach. https://www.dfo-mpo.gc.ca/reports-rapports/regs/sff-cpd/precaution-eng.htm.
-
-DFO. 2013. Proceedings of the National Workshop for Technical Expertise in Stock Assessment (TESA):
-Maximum Sustainable Yield (MSY) Reference Points and the Precautionary Approach when Productivity Varies; December 13-15, 2011. DFO Can. Sci. Advis. Sec. Proceed. Ser. 2012/05
-
-ICES. 2021. 16.4.3.1. ICES fisheries management reference points for category 1 and 2 stocks. ICES Technical Guidelines, published 1 March 2021. 19 pp.
-
-Mace, P.M., and Doonan, I.J. 1988. A generalised bioeconomic simulation model for fish population dynamics. New Zealand Fishery Assessment Research Document 88/4. Fisheries Research Centre, MAFFish, POB 297, Wellington, NZ.
-
-Miller, T.J., and Brooks, E.N. 2020. Steepness is a slippery slope. Fish and Fisheries, 22: 634-645.

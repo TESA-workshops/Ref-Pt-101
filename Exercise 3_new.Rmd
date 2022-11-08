@@ -132,7 +132,7 @@ head(D)
 
 We begin by calculating the reference points for each of the seven OMs. This can be done using the `MSYcalc()` function in a loop.
 
-Using the `MSYcalc()` function, we provide the at-age vectors for *M* (`M`), weight-at-age (`waa`), maturity (`mat`), selectivity (`sel`) as well as the Beverton-Holt \alpha (`BHa`) and \beta (`BHb`) parameters. The code for the `MSYcalc()` function is in the file "source_ftns.r". The function calculates:
+We provide the `MSYcalc()` function with the at-age vectors for *M* (`M`), weight-at-age (`waa`), maturity (`mat`), selectivity (`sel`) as well as the Beverton-Holt \alpha (`BHa`) and \beta (`BHb`) parameters. The code for the `MSYcalc()` function is in the file "source_ftns.r". The function calculates:
 
 * $F_{MSY}$ as the equilibrium fishing mortality rate ($F_e$) that maximizes yield over a vector of $F_e$ values, 
 

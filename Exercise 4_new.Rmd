@@ -12,22 +12,22 @@ knitr::opts_chunk$set(echo = T, warnings= F)
 ```
 
 ## Exercise 4:
-## $F_{MSY}$ Proxy based on Spawning Potential Ratio (SPR)
+## $F_\text{MSY}$ Proxy based on Spawning Potential Ratio (SPR)
 
 ***DISCLAIMER: These are illustrative, deterministic models and should not be used for stock assessment***
   
 **Run the R chunks in Rstudio using the green arrow in each chunk. Run individual lines in the chunks using ctrl+enter. If you want to explore further, you can add your own R code inside any of the chunks, or add your own chunks using ctrl+alt+i. Click on the Knit button in Rstudio to create the document.**
   
-Here we look at the same operating model (OM) from Exercise 4 where growth is time-varying. The objective of this exercise is to explore $F_{MSY}$ and $B_{MSY}$ proxy reference points based on Spawning Potential Ratio (SPR). 
+Here we look an operating model (OM) from Exercise 3 where growth is time-varying. The objective of this exercise is to explore $F_\text{MSY}$ and $B_\text{MSY}$ proxy reference points based on Spawning Potential Ratio (SPR). 
 
-The SPR at a given constant, long-term $F$ is the SSB-per-recruit ($\phi$)  divided by the $\phi$ at long-term equilibrium $F =0$ (Gabriel et al. 1989; Clark 1991; Mace and Sissenwine 1993): 
+The SPR at a given constant, long-term $F$ is the SSB-per-recruit ($\phi$) divided by the $\phi$ at long-term equilibrium $F = 0$ (Gabriel et al. 1989; Clark 1991; Mace and Sissenwine 1993): 
 
 \begin{equation}
 \tag{1}
 {SPR_F=\frac{\phi_F}{\phi_0}}
 \end{equation}
 
-A fishing mortality rate $F_{X\%SPR}$ represents the *F* that results in X% of $\phi_0$. The value of X that results in $F_{MSY}$ is an inverse function of $h$ (Williams 2002; Punt et al. 2008; Forrest et al., 2010). However, while $F_{MSY}$ is a function of both $h$ and $M$, once X is selected, the calculation of $F_{X\%SPR}$ is independent of $h$, although still sensitive to M (Forrest et al. 2018). A common proxy for $F_{MSY}$ is $F_{40\%SPR}$ (Mace 1994; Clark 2002; Sainsbury 2008). *F*-based reference points can be interpreted in terms of biomass-based reference points as the equilibrium biomass resulting from long-term fishing at the constant specified *F*. Thus, the equilibrium biomass at $F_{40\%SPR}$ is a proxy for $B_{MSY}$, however, $SPR$ percentages in the range of 30-50% are relatively common proxies for $F_{MSY}$(MF 2011; PFMC 2014). In New Zealand’s operational guidance, $F_{40\%SPR}$ corresponds to an $F_{MSY}$ for “medium productivity” stocks, while the SPR for “low” and “high” productivity stocks are 45% and 30%, respectively (MF 2011). See MF (2011) for descriptions of the stock productivity classifications. $F_{50\%SPR}$ has further been suggested by Sainsbury (2008) as a default proxy for $F_{MSY}$ when $h$ is unknown, since it provides a high fraction of $MSY$ for $h$ greater than 0.3. Dorn (2002) recommended fishing mortality rates in the range of $F_{40\%SPR}$ to $F_{60\%SPR}$ should be considered for data-limited West Coast rockfishes.
+A fishing mortality rate $F_\text{X%SPR}$ represents the *F* that results in X% of $\phi_0$. The value of X that results in $F_\text{MSY}$ is an inverse function of $h$ (Williams 2002; Punt et al. 2008; Forrest et al., 2010). However, while $F_\text{MSY}$ is a function of both $h$ and $M$, once X is selected, the calculation of $F_\text{X%SPR}$ is independent of $h$, although still sensitive to $M$ (Forrest et al. 2018). A common proxy for $F_\text{MSY}$ is $F_\text{40%SPR}$ (Mace 1994; Clark 2002; Sainsbury 2008). *F*-based reference points can be interpreted in terms of biomass-based reference points as the equilibrium biomass resulting from long-term fishing at the constant specified *F*. Thus, the equilibrium biomass at $F_{40\%SPR}$ is a proxy for $B_\text{MSY}$, however, $SPR$ percentages in the range of 30-50% are relatively common proxies for $F_\text{MSY}$(MF 2011; PFMC 2014). In New Zealand’s operational guidance, $F_\text{40%SPR}$ corresponds to an $F_\text{MSY}$ for “medium productivity” stocks, while the SPR for “low” and “high” productivity stocks are 45% and 30%, respectively (MF 2011). See MF (2011) for descriptions of the stock productivity classifications. $F_\text{50%SPR}$ has further been suggested by Sainsbury (2008) as a default proxy for $F_\text{MSY}$ when $h$ is unknown, since it provides a high fraction of $MSY$ for $h$ greater than 0.3. Dorn (2002) recommended fishing mortality rates in the range of $F_\text{40%SPR}$ to $F_\text{60%SPR}$ should be considered for data-limited West Coast rockfishes.
 
 ```{r,warning=F,message=F}
 source("source_ftns.r")
@@ -40,21 +40,21 @@ head(D)
 WAA[,49:53]
 ```
 
-## $MSY$ proxies: 40% SPR
+## *MSY* proxies: 40% SPR
 
-Here we estimate $F_{40\%SPR}$ and the equilibrium SSB from fishing at $F_{40\%SPR}$ using the mean weight-at-age from the last 5 years historical years. We use the `MSYcalc()` function and provide the at-age vectors for *M* (`M`), weight-at-age (`waa`), maturity (`mat`), selectivity (`sel`) as well as the Beverton-Holt $\alpha$ (`BHa`) and $\beta$ (`BHb`) parameters. The code for the `MSYcalc()` function is in the file "source_ftns.r". The function calculates:
+Here we estimate $F_\text{40%SPR}$ and the equilibrium SSB from fishing at $F_\text{40%SPR}$ using the mean weight-at-age from the last 5 years historical years. We use the `MSYcalc()` function and provide the at-age vectors for $M$ (`M`), weight-at-age (`waa`), maturity (`mat`), selectivity (`sel`) as well as the Beverton-Holt $\alpha$ (`BHa`) and $\beta$ (`BHb`) parameters. The code for the `MSYcalc()` function is in the file "source_ftns.r". The function calculates:
 
-* $F_{MSY}$ as the equilibrium fishing mortality rate ($F_e$) that maximizes yield over a vector of $F_e$ values, 
+* $F_\text{MSY}$ as the equilibrium fishing mortality rate ($F_e$) that maximizes yield over a vector of $F_e$ values, 
 
-* $MSY$ as the equilibrium yield from fishing long-term at $F_{MSY}$,
+* $MSY$ as the equilibrium yield from fishing long-term at $F_\text{MSY}$,
 
-* $B_{MSY}$ (i.e., $SSB_{MSY}$) as the equilibrium SSB from fishing long-term at $F_{MSY}$,
+* $B_\text{MSY}$ (i.e., $SSB_\text{MSY}$) as the equilibrium SSB from fishing long-term at $F_\text{MSY}$,
 
 * $B_{0}$ (i.e., $SSB_{0}$) as the equilibrium SSB at $F$ = 0 (i.e., equilibrium unfished SSB), and
 
-* a dataframe with the vector of $F_e$ and the associated SSB-per-recruit ($\phi_F$), yield-per-recruit ($YPR$), equilibrium SSB ($SSB_e$), equilibrium recruitment ($R_e$), and yield at each $F_e$. 
+* a dataframe with the vector of $F_e$ and the associated SSB-per-recruit ($\phi_{F_e}$), yield-per-recruit ($YPR$), equilibrium SSB ($SSB_e$), equilibrium recruitment ($R_e$), and yield at each $F_e$. 
 
-The data in this dataframe (defined as **DF** below) is used to identify the $F$ that results in 40% SPR.
+The data in this dataframe (defined as **DF** below) is used to identify the $F_e$ that results in 40% SPR.
 
 ```{r,warning=F,message=F}
 # MSY calc function
@@ -83,7 +83,7 @@ DF$eq_ssb_f[DF$f==Fspr40]
 RP$SSBmsy
 ```
 
-In the example here, $F_{40\%SPR}$ is estimated as 0.403, lower than the estimate of $F_{MSY}$ which was 0.517. The $F_{MSY}$ estimate is dependent on the $h$ of the SRR. If the $h$ is uncertain or if there are few stock-recruit points at low biomass to inform recruitment dynamics at low biomass (e.g. see **Figure 1**) then the $F_{X\%SPR}$ can serve as a proxy for $F_{MSY}$ that doesn't reply on assumptions of recruitment dynamics at low biomass (Note that the steep drop in the SRR in **Figure 1** occurs below the minimum biomass in the stock-recruit pairs). Here the choice of SPR of 40% was made assuming the stock has a medium productivity, so an assumption of stock productivity is still required to select the percent of SPR to use as a proxy for $F_{MSY}$. The assumption of a $h$ of 0.8 would suggest that the stock is fairly resilient or a bit more productive than "medium" and the $F_{MSY}$ estimate assuming the $h$ is 0.8 results in approximately 35% SPR. The choice of appropriate reference point will ultimately depend on multiple factors including the validity of assumptions of the SRR and stock productivity.
+In the example here, $F_\text{40%SPR}$ is estimated as 0.403, lower than the estimate of $F_\text{MSY}$ which was 0.517. The $F_\text{MSY}$ estimate is dependent on the $h$ of the SRR. If the $h$ is uncertain or if there are few stock-recruit points at low biomass to inform recruitment dynamics at low biomass (e.g., see **Figure 1**) then the $F_\text{X%SPR}$ can serve as a proxy for $F_\text{MSY}$ that doesn't reply on assumptions of recruitment dynamics at low biomass (Note that the steep drop in the SRR in **Figure 1** occurs below the minimum biomass in the stock-recruit pairs). Here the choice of SPR of 40% was made assuming the stock has a medium productivity, so an assumption of stock productivity is still required to select the percent of SPR to use as a proxy for $F_\text{MSY}$. The assumption of a $h$ of 0.8 would suggest that the stock is fairly resilient or a bit more productive than "medium" and the $F_\text{MSY}$ estimate assuming the $h$ is 0.8 results in approximately 35% SPR. The choice of appropriate reference point will ultimately depend on multiple factors including the validity of assumptions of the SRR and stock productivity.
 
 ```{r,warning=F}
 ggplot(D)+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +
@@ -97,5 +97,35 @@ ggplot(D)+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +
   geom_vline(xintercept=DF$eq_ssb_f[DF$f==Fspr40],color="orange") 
 ```
 
-<i><b>Figure 1. Stock-recruit pairs and model-estimated stock-recruit relationship (SRR) with lines through the origin with slopes $\frac{1}{\phi_F}$ at $F_{MSY}$ (red) and $F_{40\%SPR}$ (orange) that intersect the SRR at $B_{MSY}$ (vertical red line) and the $B_{MSY}$ proxy (equilibrium biomass from fishing at $F_{40\%SPR}$; vertical orange line)</i></b> 
+<i><b>Figure 1. Stock-recruit pairs and model-estimated stock-recruit relationship (SRR) with lines through the origin with slopes $\frac{1}{\phi_F}$ at $F_\text{MSY}$ (red) and $F_\text{40%SPR}$ (orange) that intersect the SRR at $B_\text{MSY}$ (vertical red line) and the $B_\text{MSY}$ proxy (equilibrium biomass from fishing at $F_\text{40%SPR}$; vertical orange line)</i></b> 
 <br>
+
+## References
+
+Clark, W.G. 1991. Groundfish exploitation rates based on life history parameters. Canadian Journal of Fisheries and Aquatic Sciences, 48, 734-750.
+
+Clark, W.G. 2002. F35% revisited ten years later. North American Journal of Fisheries Management, 22: 251-257.
+
+Dorn, M.W. 2002. Advice on west coast rockfish harvest rates from Bayesian meta-analysis of stock-recruit relationships. North American Journal of Fisheries Management, 22: 280-300.
+
+Forrest, R.E., McAllister, M.K., Dorn, M., Martell, S.J.D, Stanley, R. 2010. Hierarchical Bayesian estimation of productivity and reference points for Pacific rockfishes (Sebastes spp.) under alternative assumptions about the stock-recruit function. Canadian Journal of Fisheries and Aquatic Sciences, 67: 1611-1634.
+
+Forrest, R.E., Holt, K.E, and Kronlund, A.R. 2018. Performance of alternative harvest control rules for two Pacific groundfish stocks with uncertain natural mortality: Bias, robustness and trade-offs. Fisheries Research, 206: 259-286.
+
+Gabriel, W.L., Sissenwine, M.P., and Overholtz, W.J. 1989. Analysis of spawning stock biomass per recruit: an example for Georges Bank haddock. North American Journal of Fisheries Management, 9: 383-391.
+
+Mace, P.M. 1994. Relationships between common biological reference points used as thresholds and targets of fisheries management strategies. Canadian Journal of Fisheries and Aquatic Sciences, 51:110-122.
+
+Mace, P.M., and Sissenwine, M.P. 1993. How much spawning per recruit is enough? In S.J. Smith, J.J. Hunt and D. Rivard (ed.). Risk evaluation and biological reference points for fisheries management. Can. Spec. Publ. Fish. Aquat. Sci. 120: 101-118. 
+
+MF (New Zealand Government, Ministry of Fisheries). 2011. Operational Guidelines for New Zealand’s Harvest Strategy Standard, Revision 1, June 2011. 78 p.
+
+PFMC (Pacific Fishery Management Council). 2014. Pacific coast groundfish fishery management plan for the California, Oregon and Washington Groundfish Fishery. Pacific Fishery Management Council, Portland, OR, USA. 
+
+Punt, A.E., Dorn, M.W., and Haltuch, M.A. 2008. Evaluation of threshold management strategies for groundfish off the U.S. West Coast. Fisheries Research, 94: 251-266.
+
+Sainsbury, K. 2008. Best Practice Reference Points for Australian Fisheries. Australian Fisheries Management Authority Report R2001/0999.
+
+Williams, E.H. 2002. The effects of unaccounted discards and misspecified natural mortality on harvest policies based on estimates of spawners per recruit. North American Journal of Fisheries Management, 22: 311-325. 
+
+

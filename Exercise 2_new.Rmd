@@ -336,7 +336,7 @@ MSY
 
 The MSY reference points are plotted below the the yield curves:
 
-```{r,figures-side, warning = F, fig.show="hold", out.width="75%"}
+```{r, warning = F, fig.show="hold", out.width="75%"}
 
 # Plot Yield vs. Equilibrium SSB with reference lines at SSBmsy and MSY
 ggplot(DF) + geom_point(mapping=aes(y=yield_f,x=eq_ssb_f)) + theme_classic() + 
@@ -349,7 +349,7 @@ ggplot(DF) + geom_point(mapping=aes(y=yield_f,x=eq_ssb_f)) + theme_classic() +
 
 <i><b>Figure 2. Equilibrium yield vs. equilibrium SSB over a range of $F$ values. MSY is the maximum yield (horizontal dashed line) and occurs at SSB = $SSB_\text{MSY}$ (vertical dashed line)</i></b> 
 
-```{r,figures-side, warning = F, fig.show="hold", out.width="75%"}
+```{r, warning = F, fig.show="hold", out.width="75%"}
 
 # Plot Yield vs. F with reference lines at Fmsy and MSY
 ggplot(DF) + geom_point(mapping=aes(y=yield_f,x=f)) + theme_classic() + 

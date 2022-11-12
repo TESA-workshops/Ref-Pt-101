@@ -61,7 +61,7 @@ We would like to estimate model parameters and MSY-based reference points for th
 B_{t+1} = B_{t} + r B_{t} \left(1-\frac{B_{t}}{K}\right) - C_{t}
 \end{equation*}
 
-where $B$ is biomass, $r$ is the intrinsic rate of population growth, $K$ is the carrying capacity, $C$ is the catch, and $t$ is a discrete time period (one year in this case). $B_{MSY}$ is then calculated as $K/2$ and $F_{MSY}$ is calculated as $r/2$, where $F$ is the instantaneous fishing mortality rate (Hilborn and Walters 1992, Ch. 8; see slides *XXX* of the PPT).
+where $B$ is biomass, $r$ is the intrinsic rate of population growth, $K$ is the carrying capacity, $C$ is the catch, and $t$ is a discrete time period (one year in this case). $B_\text{MSY}$ is then calculated as $K/2$ and $F_\text{MSY}$ is calculated as $r/2$, where $F$ is the instantaneous fishing mortality rate (Hilborn and Walters 1992, Ch. 8; see slides **XXX** of the PPT).
 
 We could fit the model using various software packages, or write the code ourselves in R or other languages like ADMB, stan or TMB. Here we use SAMtool, an R package that is part of the openMSE software. When you install the openMSE R package, you will automatically get SAMtool. 
 
@@ -171,7 +171,7 @@ theme(axis.title.x = element_text(size=12, face="bold"))+
 
 <i><b>Figure 3. Time series plot of biomass and catch for the historical time period and projected over 100 years using the fishing mortality rate from the terminal year. The vertical dashed line shows the beginning of the projection period under constant $F$ </i></b> 
 
-**Figure 3** shows the historical population biomass to the left of the dashed vertical line, and the projected biomass to the right. The population reached equilibrium under the constant fishing mortality rate quite quickly. Just to extend this a bit, let's do the same with four different fishing mortality rates: $F = 0$, $F =$ `terminalF`, $F = F_{MSY}$, and a high fishing mortality rate $F = F_{crash}$ that would crash the population. Note that $F_{MSY} = r/2$ from the fitted model.
+**Figure 3** shows the historical population biomass to the left of the dashed vertical line, and the projected biomass to the right. The population reached equilibrium under the constant fishing mortality rate quite quickly. Just to extend this a bit, let's do the same with four different fishing mortality rates: $F = 0$, $F =$ `terminalF`, $F = F_\text{MSY}$, and a high fishing mortality rate $F = F_{crash}$ that would crash the population. Note that $F_\text{MSY} = r/2$ from the fitted model.
 
 ```{r,warning=F}
 
@@ -223,9 +223,9 @@ ggplot(pB, aes(Year, Biomass)) +
 
 <i><b>Figure 4. Time series plot of biomass for the historical time period and 100 projected years for four different constant fishing mortality rates</i></b> 
 
-Fishing constantly at any fishing mortality rate results in the stock coming to some equilibrium biomass $B$, ranging between $B = 0$ and $B = K$. The Schaefer model predicts that the stock will eventually come to carrying capacity $K$ under no fishing, and to $B_{MSY}$ under a constant fishing mortality rate of $F_{MSY}$, as shown in the plot.
+Fishing constantly at any fishing mortality rate results in the stock coming to some equilibrium biomass $B$, ranging between $B = 0$ and $B = K$. The Schaefer model predicts that the stock will eventually come to carrying capacity $K$ under no fishing, and to $B_\text{MSY}$ under a constant fishing mortality rate of $F_\text{MSY}$, as shown in the plot.
 
-We can see this by comparing final year equilibrium values from the above numerical exercise with the analytical predictions of the Schaefer model (i.e., $B_{MSY} = K/2$ and $F_{MSY} = r/2$). The numerical and analytical solutions for $K$ and $B_{MSY}$ are identical.
+We can see this by comparing final year equilibrium values from the above numerical exercise with the analytical predictions of the Schaefer model (i.e., $B_\text{MSY} = K/2$ and $F_\text{MSY} = r/2$). The numerical and analytical solutions for $K$ and $B_\text{MSY}$ are identical.
 
 ```{r,warning=F}
 
@@ -248,17 +248,17 @@ K/2    # Analytical solution
 
 ```
 
-This is what is meant by "equilibrium reference points", i.e., if we run out a model for a long time under constant fishing mortality rate and constant conditions, it will "equilibrate" at the analytically-predicted values. We will see in the next exercise that there is no analytical solution for $F_{MSY}$ in age-structured models, but the idea that equilibrium reference points represent the results of running out a model for a long time under constant fishing mortality rates is the same (although there are fortunately short-cut numerical methods so we don't have to do this).
+This is what is meant by "equilibrium reference points", i.e., if we run out a model for a long time under constant fishing mortality rate and constant conditions, it will "equilibrate" at the analytically-predicted values. We will see in the next exercise that there is no analytical solution for $F_\text{MSY}$ in age-structured models, but the idea that equilibrium reference points represent the results of running out a model for a long time under constant fishing mortality rates is the same (although there are fortunately short-cut numerical methods so we don't have to do this).
 
-Of course, in the real world there are never constant conditions. Equilibrium reference points such as $B_{MSY}$ represent some long-term average with annual fluctuations around this average. This assumes there are no directional trends or major shifts in model parameters or environmental conditions. The problem of non-stationarity becomes much more complex with statistical catch-at-age models, which may have trends or shifts in parameters such as growth, natural mortality or selectivity-at-age, or in observed population data such as weight-at-age. Calculating reference points under these conditions requires some extra assumptions (such as whether to average time-varying variables and over what period), which are often quite subjective. These choices can be impactful in terms of interpretation of reference points and stock status.  Impacts of time-varying variables on reference points and advice is an active area of research (e.g., Haltuch et al. 2009; Holt and Michielsens 2020; Zhang et al. 2020). In this webinar we are trying to illustrate the basic concepts. We will touch on non-stationarity in Exercise 5, but will not have time for detailed analysis.
+Of course, in the real world there are never constant conditions. Equilibrium reference points such as $B_\text{MSY}$ represent some long-term average with annual fluctuations around this average. This assumes there are no directional trends or major shifts in model parameters or environmental conditions. The problem of non-stationarity becomes much more complex with statistical catch-at-age models, which may have trends or shifts in parameters such as growth, natural mortality or selectivity-at-age, or in observed population data such as weight-at-age. Calculating reference points under these conditions requires some extra assumptions (such as whether to average time-varying variables and over what period), which are often quite subjective. These choices can be impactful in terms of interpretation of reference points and stock status.  Impacts of time-varying variables on reference points and advice is an active area of research (e.g., Haltuch et al. 2009; Holt and Michielsens 2020; Zhang et al. 2020). In this webinar we are trying to illustrate the basic concepts. We will touch on non-stationarity in Exercise 5, but will not have time for detailed analysis.
 
 ## 3. Understanding 'Maximum Sustainable Yield'
 
-We've seen that $B_{MSY}$ is an analytical property of the Schaefer model $\left(K/2\right)$, which can be reproduced numerically by running out the model under a constant fishing mortality rate of $F_{MSY}$. But where did $F_{MSY}$ come from? Next, we'll repeat Step 2 over a range of fishing mortality rates from 0 to 1 in increments of 0.001 and show that the constant fishing mortality rate $F$ that maximizes long-term yield is the same as the estimate of $F_{MSY}$ from Section 1.
+We've seen that $B_\text{MSY}$ is an analytical property of the Schaefer model $\left(K/2\right)$, which can be reproduced numerically by running out the model under a constant fishing mortality rate of $F_\text{MSY}$. But where did $F_\text{MSY}$ come from? Next, we'll repeat Step 2 over a range of fishing mortality rates from 0 to 1 in increments of 0.001 and show that the constant fishing mortality rate $F$ that maximizes long-term yield is the same as the estimate of $F_\text{MSY}$ from Section 1.
 
-The two-parameter Schaefer model produces a symmetrical yield curve. More complex, non-symmetrical versions of this model exist (e.g., the Pella-Tomlinson model; Hilborn and Walters 1992) and, indeed, similar yield curves are produced by age-structured models. The important concept from this exercise is that $F_{MSY}$ (or its instantaneous equivalent $F_{MSY}$, which we'll see in Exercise 2) is the long-term fishing mortality rate that would maximize yield in the long-term under stable conditions.
+The two-parameter Schaefer model produces a symmetrical yield curve. More complex, non-symmetrical versions of this model exist (e.g., the Pella-Tomlinson model; Hilborn and Walters 1992) and, indeed, similar yield curves are produced by age-structured models. The important concept from this exercise is that $F_\text{MSY}$ (or its instantaneous equivalent $F_\text{MSY}$, which we'll see in Exercise 2) is the long-term fishing mortality rate that would maximize yield in the long-term under stable conditions.
 
-In the exercise below, we identify $F_{MSY}$ numerically by running out the model under a sequence of fishing mortality rates and identifying the value of $F$ that maximizes yield in the long term.
+In the exercise below, we identify $F_\text{MSY}$ numerically by running out the model under a sequence of fishing mortality rates and identifying the value of $F$ that maximizes yield in the long term.
 
 ```{r,warning=F}
 
@@ -314,11 +314,11 @@ ggplot(EX3)+
 
 ```
 
-<i><b>Figure 5. Plot of yield vs. Fishing Mortality rate ($F$) with a vertical line at $F_{MSY}$ where yield is maximized</i></b> 
+<i><b>Figure 5. Plot of yield vs. Fishing Mortality rate ($F$) with a vertical line at $F_\text{MSY}$ where yield is maximized</i></b> 
 
-**Figure 5** shows the final year catch (i.e., yield) under each of the tested fishing mortality rates. It confirms that long-term yield is maximized by fishing at $F_{MSY}$, indicated by the blue dashed line.
+**Figure 5** shows the final year catch (i.e., yield) under each of the tested fishing mortality rates. It confirms that long-term yield is maximized by fishing at $F_\text{MSY}$, indicated by the blue dashed line.
 
-Note: The figure above (an inverted parabola) suggests that we could use calculus to find the fishing mortality rate that maximizes yield (i.e., the derivative of yield with respect to $F$ = 0; See slides **XXX** of the powerpoint). This is indeed how most numerical searches for $F_{MSY}$ work. For the purposes of these exercises, however, we used a simpler grid search. This most clearly illustrates the concept of maximizing yield, but please be aware that this is the least efficient means of finding $F_{MSY}$!
+Note: The figure above (an inverted parabola) suggests that we could use calculus to find the fishing mortality rate that maximizes yield (i.e., the derivative of yield with respect to $F$ = 0; See slides **XXX** of the powerpoint). This is indeed how most numerical searches for $F_\text{MSY}$ work. For the purposes of these exercises, however, we used a simpler grid search. This most clearly illustrates the concept of maximizing yield, but please be aware that this is the least efficient means of finding $F_\text{MSY}$!
 
 ## References
 

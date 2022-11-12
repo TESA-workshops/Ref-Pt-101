@@ -20,26 +20,25 @@ knitr::opts_chunk$set(echo = T, warnings= F)
 
 Here, we will extend the ideas from Exercise 1 to an age-structured model. By the end of the exercise you will learn how to:
 
-* Calculate equilibrium unfished biomass ($B_\text{0}$) and equilibrium MSY reference points ($B_\text{MSY}$, $F_\text{MSY}$, $MSY$) when a stock-recruitment relationship is assumed
+* Calculate equilibrium unfished biomass ($B_\text{0}$) and equilibrium MSY reference points ($B_\text{MSY}$, $F_\text{MSY}$, $\text{MSY}$) when a stock-recruitment relationship is assumed
 
-* ...
-
-We will use outputs based on an operating model from [openMSE](https://openmse.com/) that has been conditioned on age-composition data, catch and a survey index for an Atlantic cod stock for ages 4+.
+We will use outputs based on an example operating model that has been conditioned on age-composition data, catch and a survey index for a cod stock for ages 4+.
 
 We assume a Beverton-Holt stock-recruit relationship (Beverton and Holt 1957; Hilborn and Walters 1992, Ch 7). The stock-recruit pairs are plotted below and saved in the dataframe **SR**. The biological data (weight-at-age, maturity-at-age, *M*-at-age) and assumed selectivity-at-age are saved in the dataframe **BI**.
 
-<!-- NOTE TO TIM: I overwrote BI$sel with values from a logistic curve. See get-sel-pars.R. You shouldn't need to run it as I overwrote the Ex2 rda file but have saved the original. Please could you add the estimate of steepness and R0 from the OM to the dataset? -->
-
 ```{r,warning=F, fig.show="hold", out.width="75%"}
-data <- readRDS("Ex2data.rda")
+data <- readRDS("Ex2data.rda") # data is a list with model outputs and data
+
 # Dataframe SR with Year, SSB in kt, and age 0 recruitment in millions
 SR <- data$SR
+
 # Dataframe BI with ages (0 to 12+), weight-at-age in kg (waa), proportion mature-at-age (mat), M-at-age, selectivity-at-age (sel)
 BI <- data$BI
 
-# Beverton-Holt parameters a and b (model estimated and used for plotting and reference point calculations)
-BHa <- data$BHa
-BHb <- data$BHb
+# The Beverton-Holt stock-recruit relationship is parameterized in terms of R0, h, and phi0 [R0 and h are model estimated and phi0 is determined from biological parameters: M-at-age, weight-at-age, and maturity-at-age]. These parameters are stored in the data list:
+h <- data$h
+R0 <- data$R0
+phi0 <<- data$phi0
 
 # Preview data
 head(SR)
@@ -48,15 +47,17 @@ head(BI)
 # Plot the stock-recruitment relationship
 P <- ggplot(SR) + geom_point(mapping=aes(y=Rec,x=SSB,colour=Year)) + theme_classic() + 
   labs(x="SSB (kt)",y="Age 0 Recruits (millions)") +
-  scale_x_continuous(limits = c(0,80), expand = c(0, 0)) +
+  scale_x_continuous(limits = c(0,8), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0,40), expand = c(0, 0)) +
-  geom_function(fun=function(x) (BHa*x / (1+BHb*x)),colour="black",linetype=1)+
+  geom_function(fun=function(x) (4*R0*h*x/((1-h)*R0*phi0+(5*h-1)*x)),colour="black",linetype=1) +
   theme(axis.text.x = element_text(size=12))+
   theme(axis.text.y = element_text(size=12))+
   theme(axis.title.x = element_text(size=12, face="bold"))+
   theme(axis.title.y = element_text(size=12, face="bold"))
 P
 ```
+
+<i><b>Figure 1. Model estimated recruitment (age-0 recruits in millions) vs. spawning stock biomass (in kt) with the stock-recruit relationship (SRR; black line)</i></b>
 
 Age-structured models keep track of the number of fish that are alive at a given age and time (determined by recruitment, natural mortality and fishing mortality), the proportion mature at a given age (determined by the maturity-at-age schedule), as well as the proportion of fish that are vulnerable (or "available") to the fishery (determined by the vulnerability-at-age schedule). For this exercise, we assume these schedules are fixed in time. 
 
@@ -86,15 +87,18 @@ matsel
 
 ```
 
-In this plot, we can see that the vulnerability curve is to the right of the maturity curve, implying that fish mature and have a chance to spawn before they are vulnerable to the fishery. 
+<i><b>Figure 2. Maturity ogive and vulnerability ogive</i></b>
+
+
+In **Figure 2**, we can see that the vulnerability curve is to the right of the maturity curve, implying that fish mature and have a chance to spawn before they are vulnerable to the fishery. 
 
 Note that the terms vulnerability and selectivity are used somewhat interchangeably in fisheries. The term vulnerability captures both the "availability" of fish to the gear  (which could be determined by the location of the fishery relative to demographic components of the population, e.g., patterns in depth distribution) and "selectivity" of the fishing gear (e.g., mesh size, hook size or escape panels). However, the term selectivity is in common use as an interchangeable term with vulnerability. In these exercises, we will try to use the term vulnerability to be consistent with the equations but will sometimes use the term selectivity.
 
-## Equilibrium calculations
+## Equilibrium Calculations
 
 Now we look at the equilibrium calculations used to calculate reference points, given a set of model parameters. These exercises use deterministic parameter values but please be aware that stock assessments estimate parameters with uncertainty and that this uncertainty carries through into the reference points.
 
-### Unfished per-recruit calculations
+### Unfished Per-recruit Calculations
 
 As for the simpler surplus production model in the previous exercise, the equilibrium unfished biomass ($B_0$) is the biomass that would result from running out the population model for a long period without fishing under constant average conditions. Usually reference points are based on spawning biomass (SSB), as this is the component of the population of most conservation interest and the equilibrium unfished biomass is $SSB_0$.
 
@@ -120,18 +124,37 @@ The equilibrium unfished SSB-per-recruit ($\phi_{E0}$) can then be calculated as
 {\phi_{E0}} = \sum_{a=a_{rec}}^{a_{max}} l_{0_{a}}w_{a}m_{a}
 \end{equation}
 
-where we use the subscript $E$ because we assume that SSB is a proxy for eggs produced. We then obtain an estimate of the equilibrium unfished SSB ($SSB_0$) from $\phi_{E0}$ and an estimate of unfished recruitment $R_{0}$, i.e., 
+where we use the subscript $_{E}$ because we assume that SSB is a proxy for eggs produced. Note that $\phi_{E0}$ here is the same as the $\phi_{0}$ parameter defined in the stock-recruit relationship when biological parameters (i.e., $M$, weight-at-age, and maturity-at-age) are not time-varying. We obtain an estimate of the equilibrium unfished SSB ($SSB_0$) from $\phi_{E0}$ and the unfished recruitment $R_{0}$ as: 
 
 \begin{equation}
 \tag{3}
-{SSB_0} = {R_0}{\phi_{E0}}
+{SSB_0} = {\phi_{E0}}{R_0}
 \end{equation}
+
+*Note:* The `survivorship_F()` function in source_ftns.R can be used here to calculate $l_a$ for any $F_e$ as shown in Equation 4. To obtain unfished $l_{0_{a}}$, set f = 0 in the `survivorship_F()` function.
+
+```{r,message=F}
+surv0 <- survivorship_F(f=0,M=BI$M,n_ages=nrow(BI)) # This is Equation 2 at F = 0
+phiE0 <- sum(surv0*BI$waa*BI$mat) # This is Equation 1 at F = 0
+phiE0 # unfished SSB-per-recruit
+
+# R0 is an estimated parameter from the stock-recruit relationship
+SSB0 <- phiE0*R0 # SSB0 = unfished SSB-per-recruit * unfished number of recruits
+SSB0
+```
+
+The estimation of $SSB_0$ can be shown visually as the SSB at the intersection of the SRR and a line through the origin with slope equal to the inverse of $\phi_0$ (i.e., unfished recruits per spawner). This is illustrated below:
+
+```{r,out.width="75%"}
+P + geom_function(fun=function(x) (1/phiE0*x),colour="red") +
+    geom_vline(xintercept=SSB0, linetype=2, color = "red") 
+```
+
+<i><b>Figure 2. Model estimated recruitment (age-0 recruits in millions) vs. spawning stock biomass (in kt) with the stock-recruit relationship (SRR; black line), and a line with slope $\frac{1}{\phi_{E0}}$ (red line) that intersects the SRR at $SSB_0$ (vertical dashed line)</i></b> 
 
 ### Per-recruit calculations with fishing
 
-In order to calculate MSY-based reference points, we also need to calculate long-term equilibrium population behaviour under constant fishing mortality rates.
-
-At any constant equilibrium fishing mortality $F_{e}$, the equilibrium survivorship-at-age $l_a$ is a simple modification of Equation 1, accounting for fishing mortality and vulnerability-at-age $v_{a}$:
+In order to calculate MSY-based reference points, we also need to calculate long-term equilibrium population behaviour under constant fishing mortality rates. At any constant equilibrium fishing mortality rate $F_{e}$, the equilibrium survivorship-at-age $l_a$ is a simple modification of **Equation 1**, accounting for fishing mortality and vulnerability-at-age $v_{a}$:
 
 \begin{equation*}
 \tag{4}
@@ -151,95 +174,54 @@ SSB-per-recruit ($\phi_{F}$) is then given by
 {\phi_{F}} = \sum_{a=a_{rec}}^{a_{max}} l_{a}w_{a}m_{a}
 \end{equation}
 
-*Note:* The `survivorship_F()` function in source_ftns.R can be used here to calculate $l_a$ for any $F_e$ as shown in Equation 5. To obtain unfished $l_{0_{a}}$, set f = 0 in the `survivorship_F()` function.
+### Deriving the Stock-recruit Parameters Needed for Calculating Equilibrium SSB and Equilibrium Recruitment
 
-<!--
-# We don't need this. We could get Yield as Fe*Re*phiVBe but haven't tested it with
-# these instantaneous equations. Might need to convert F to U.
-
-We can also calculate the unfished vulnerable biomass per recruit $\phi_{VB}$:
-
-\begin{equation}
-\tag{6}
-{\phi_{VB}} = \sum_{a=a_{rec}}^{a_{max}} \hat{l}_{a}w_{a}v_{a}
-\end{equation}
--->
-
-### Deriving the stock-recruit parameters needed for further calculations
-
-To get $R_\text{MSY}$, we can use the Beverton-Holt stock-recruit function (see footnote for Ricker equations). The Beverton-Holt stock-recruit function is defined by two parameters $\alpha$ and $\beta$ (respectively called `BHa` and `BHb` in our data above). The $\alpha$ parameter represents the maximum juvenile survival rate, while the $\beta$ parameter determines the degree of compensation in juvenile survival.
+To calculate the MSY reference points, we can use the Beverton-Holt stock-recruit function (see footnote for Ricker equations) to calculate the equilibrium SSB and equilibrium recruitment for any $F_e$. We will focus on the Beverton-Holt stock-recruit function parameterized by two parameters $\alpha$ and $\beta$:
 
 \begin{equation*}
-\tag{7}
+\tag{6}
   R = \frac{\alpha SSB}{1+\beta SSB}
 \end{equation*}
 
-We can re-express this function in terms of spawning biomass per recruit, by substituting $SSB =  \phi_{E0} R$ into Equation 7 and rearranging to get:
+The $\alpha$ parameter represents the maximum juvenile survival rate, while the $\beta$ parameter determines the degree of compensation in juvenile survival. Note that we can re-express **Equation 6** in terms of SSB-per-recruit, by substituting $SSB=\phi_{F_e}R_e$ into **Equation 6** and rearranging to get and expression for $R_0$ in terms of $\alpha$, $\beta$, and $\phi_{E0}$:
 
 \begin{equation*}
-\tag{8}
+\tag{7}
 R_0 = \frac{\alpha \phi_{E0}-1}{\beta \phi_{E0}} 
 \end{equation*}
 
-(Walters and Martell 2004, Box 3.1). We assume that the model has estimated the leading parameters $R_{0}$ and steepness $h$. The $\alpha$ and $\beta$ parameters are then derived as:
+Our model has estimated the leading parameters $R_0$ and steepness $h$ using the parameterization:
+
+\begin{equation*}
+\tag{8}
+  R = \frac{4 R_0 h SSB}{(1-h)R_0\phi_0 + (5h-1)SSB}
+\end{equation*}
+
+The $\alpha$ and $\beta$ parameters can be calculated from $R_0$, $h$, and $\phi_0$ as:
 
 \begin{equation*}
 \tag{9}
-  \alpha = \frac{4h}{\phi_{E0} (1-h)}
+  \alpha = \frac{4h}{\phi_{0} (1-h)}
 \end{equation*}
 
-For more on derivation of $\alpha$, see Forrest et al. 2010 and references therein. Once we have an estimate of $\alpha$, we can obtain $\beta$ by rearranging Equation 8:
+For more on derivation of $\alpha$, see Forrest et al. 2010 and references therein. Once we have an estimate of $\alpha$, we can obtain $\beta$ by rearranging Equation 7:
 
 \begin{equation*}
 \tag{10}
-  \beta = \frac{\alpha \phi_{E0}-1}{R_0 \phi_{E0}}
+  \beta = \frac{\alpha \phi_{0}-1}{R_0 \phi_{E0}}
 \end{equation*}
 
-```{r,message=F}
-surv0 <- survivorship_F(f=0,M=BI$M,n_ages=nrow(BI)) # This is Equation 2 at F = 0
-phiE0 <- sum(surv0*BI$waa*BI$mat) # This is Equation 1 at F = 0
-phiE0
-
-R0 <- (BHa*phiE0-1)/(BHb*phiE0) # This is Equation 8
-R0
-
-SSB0 <- R0*phiE0
-SSB0
-
-# Show that the values of alpha and beta we derived are consistent with the estimates provided in the data
-
-# NEED THE STEEPNESS FROM THE OM. It would also be good to have R0 to show consistency
-#   between the BHa and BHb parameters and R0 and Steepness. Just to show you only need
-#   two estimated leading parameters to get everything else
-# alpha <- 4*steepness/(phiE0(1-steepness))
-# alpha
-# BHa
-
-beta <- (BHa*phiE0-1)/(R0*phiE0)
-beta
-BHb
-
+```{r}
+# Calculate the BH parameters alpha and beta
+alpha <- 4*h/(phi0*(1-h))
+beta <- (alpha*phi0-1)/(R0*phi0)
 ```
 
-The estimation of $SSB_0$ can be shown visually as the SSB at the intersection of the SRR and a line through the origin with slope equal to the inverse of $\phi_0$ (i.e., unfished recruits per spawner). This is illustrated below:
+## Calculate the MSY reference points ($F_\text{MSY}$, $SSB_\text{MSY}$, $MSY$)
 
-<!-- Tim: The calcs are all okay but it's a bit weird that the estimate of B0 is nowhere near the asymptote of the SR curve. I wonder if there was something funky in the estimation of B0 in that model? Maybe the stock wasn't unfished at the start of the series or something? Maybe because M varies with age? What were the R0 and steepness estimates from the OM?-->
+To calculate $SSB_\text{MSY}$ (i.e., $B_\text{MSY}$), we need an estimate of equilibrium recruitment at $F_\text{MSY}$. To identify $F_\text{MSY}$, we therefore need to calculate equilibrium recruitment $R_e$ over a range of equilibrium fishing mortality rates $F_e$. We saw in **Equation 3** that we could estimate $SSB_{0}$ from an estimate of $\phi_{E0}$ and $R_{0}$. Therefore, we can estimate equilibrium SSB ($SSB_{e}$) from $\phi_{F}$ and equilibrium recruitment ($R_{e}$), where $\phi_{F}$ is evaluated at any alternative value of $F$.
 
-
-```{r,out.width="75%"}
-P + geom_function(fun=function(x) (1/phiE0*x),colour="red",linetype=2) +
-    geom_vline(xintercept=SSB0, linetype=2, color = "red") 
-```
-
-<i><b>Figure 1. Model estimated recruitment (age-0 recruits in millions) vs. spawning stock biomass (in kt) with the stock-recruit relationship (SRR; black line), and a line with slope $\frac{1}{\phi_{E0}}$ (dashed line) that intersects the SRR at $SSB_0$ (vertical dashed line)</i></b> 
-
-## Estimate the MSY reference points ($F_\text{MSY}$, $SSB_\text{MSY}$, $MSY$)
-
-To estimate $SSB_\text{MSY}$ (i.e., $B_\text{MSY}$), we need an estimate of equilibrium recruitment at $F_\text{MSY}$. To identify $F_\text{MSY}$, we therefore need to calculate equilibrium recruitment $R_e$ over a range of equilibrium fishing mortality rates $F_e$. 
-
-We saw in Equation 3 that we could estimate $SSB_{0}$ from an estimate of $R_{0}$ and  $\phi_{E0}$. Therefore, we can estimate equilibrium $SSB_{e}$ from equilibrium recruitment $R_{e}$ and $\phi_{F}$, where $\phi_{F}$ is evaluated at any alternative value of $F$.
-
-We calculate $R_{e}$ for any given $F_{e}$ by evaluating Equation 8 with $\phi_{F}$ evaluated at the value $F_{e}$, i.e., 
+We calculate $R_{e}$ for any given $F_{e}$ following Equation 7 with $\phi_{F}$ evaluated at the value $F_{e}$, i.e., 
 
 \begin{equation*}
 \tag{11}
@@ -250,7 +232,7 @@ and
 
 \begin{equation*}
 \tag{12}
-SSB_e = R_{e}\phi_{F} 
+SSB_e = \phi_{F} R_{e}
 \end{equation*}
 
 $F_\text{MSY}$ is the fishing mortality rate that maximizes the yield over the long term, where yield-per-recruit is given by a per-recruit version of the Baranov equation:
@@ -260,24 +242,18 @@ $F_\text{MSY}$ is the fishing mortality rate that maximizes the yield over the l
 {YPR_{e}} = \sum_{a=a_{rec}}^{a_{max}}       l_{a}w_{a}(1-e^{-(M_a+F_ev_a)})\frac{F_ev_a}{M_a+F_ev_a}
 \end{equation}
 
-then long-term equilibrium yield $Y_e$ is simply the product of the number of recruits and the yield-per-recruit:
+then long-term equilibrium yield $Y_e$ is simply the product of the yield-per-recruit and the number of recruits:
 
 \begin{equation*}
 \tag{14}
-Y_e = R_e YPR_{e} 
+Y_e = YPR_{e} R_e 
 \end{equation*}
 
-Unlike the surplus production model, there is no analytical solution for $F_\text{MSY}$. To find the value of $F_e$ that maximizes Equation 14, we need to do a numerical search. Usually in stock assessments this is done using an efficient optimization algorithm that searches for the value of $F_e$ that gives $\frac{\delta Y}{\delta F} = 0$. Here we use a simple numerical grid search over a vector of values of $F_e$, as this most clearly shows the mechanism of finding $F_\text{MSY}$, but talk to your colleagues about the algorithms they use in their stock assessments. 
-
-<!-- There is probably an easy way to make a footnote for this note. It would be better to move it (or maybe remove it) -->
+Unlike the surplus production model, there is no analytical solution for $F_\text{MSY}$. To find the value of $F_e$ that maximizes **Equation 14**, we need to do a numerical search. Usually in stock assessments this is done using an efficient optimization algorithm that searches for the value of $F_e$ that gives $\frac{\delta Y}{\delta F} = 0$. Here we use a simple numerical grid search over a vector of values of $F_e$, as this most clearly shows the mechanism of finding $F_\text{MSY}$, but talk to your colleagues about the algorithms they use in their stock assessments. 
 
 *Note: If you are interested in this topic, there are some papers that show that if you flip the direction of estimation in the stock assessment model, i.e., if you estimate $F_\text{MSY}$ and $MSY$ as leading parameters instead of $R_0$ and $h$, then there actually is an analytical solution for the recruitment parameters (Schnute and Kronlund 1996; Forrest et al. 2008; Martell et al. 2008). However, we will not discuss this approach further in this exercise.*
 
 The `MSY_calc()` function in source_ftns.R can be used to find $F_\text{MSY}$, $B_\text{MSY}$ and $MSY$, given the stock recruit parameters \alpha and \beta and the biological data. The calculations in this function are shown below and follow these steps:
-
-<!--Tim: I lined up these steps with the equations above, which are a slight rejigging of what you had. I think a little easier to follow. I tried to make the functions match the steps. Looks the same but please check-->
-
-<!-- note we are not estimating anything here. We already have estimates of alpha and beta so we are just deriving or calculating the rest-->
 
 1) Define a vector for $F_e$ `f <- seq(0,5,0.001)`;
 
@@ -287,7 +263,7 @@ The `MSY_calc()` function in source_ftns.R can be used to find $F_\text{MSY}$, $
 
 4) Identify $F_{MSY}$ as the value of $F_e$ that maximizes $Y_e$;
 
-5) Calculate $SSB_{MSY}$ as the product of $R_e$ and $\phi_{F}$ evaluated at $F_{MSY}$ (Equation 12);
+5) Calculate $SSB_{MSY}$ as the product of $\phi_{F}$ and $R_e$ evaluated at $F_{MSY}$ (Equation 12);
 
 6) Calculate $MSY$ as $Y_e$ evaluated at $F_{MSY}$.
 
@@ -306,7 +282,7 @@ for(i in 1:length(f)){
 }  
 
 # Equilibrium recruitment
-DF$eq_rec_f <- (BHa*DF$phi_f-1)/(BHb*DF$phi_f) # Equation 11
+DF$eq_rec_f <- (alpha*DF$phi_f-1)/(beta*DF$phi_f) # Equation 11
 
 # Yield-per-recruit
 for(i in 1:length(f)){
@@ -341,26 +317,26 @@ The MSY reference points are plotted below the the yield curves:
 # Plot Yield vs. Equilibrium SSB with reference lines at SSBmsy and MSY
 ggplot(DF) + geom_point(mapping=aes(y=yield_f,x=eq_ssb_f)) + theme_classic() + 
   labs(x="SSB (kt)",y="Yield (kt)") +
-  scale_x_continuous(limits = c(0,40), expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0,3), expand = c(0, 0)) +
+  scale_x_continuous(limits = c(0,10), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,0.5), expand = c(0, 0)) +
   geom_vline(xintercept=SSBmsy, linetype=2, color = "red") +
   geom_hline(yintercept=MSY, linetype=2, color = "red") 
 ```
 
-<i><b>Figure 2. Equilibrium yield vs. equilibrium SSB over a range of $F$ values. MSY is the maximum yield (horizontal dashed line) and occurs at SSB = $SSB_\text{MSY}$ (vertical dashed line)</i></b> 
+<i><b>Figure 3. Equilibrium yield vs. equilibrium SSB over a range of $F$ values. MSY is the maximum yield (horizontal dashed line) and occurs at SSB = $SSB_\text{MSY}$ (vertical dashed line)</i></b> 
 
 ```{r, warning = F, fig.show="hold", out.width="75%"}
 
 # Plot Yield vs. F with reference lines at Fmsy and MSY
 ggplot(DF) + geom_point(mapping=aes(y=yield_f,x=f)) + theme_classic() + 
   labs(x="F",y="Yield (kt)") +
-  scale_x_continuous(limits = c(0,1.5), expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0,3), expand = c(0, 0)) +
+  scale_x_continuous(limits = c(0,3), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,0.5), expand = c(0, 0)) +
   geom_vline(xintercept=Fmsy, linetype=2, color = "red") +
   geom_hline(yintercept=MSY, linetype=2, color = "red") 
 ```
 
-<i><b>Figure 3. Equilibrium yield vs. equilibrium $F$ over a range of $F$ values. MSY is the maximum yield (horizontal dashed line) and occurs at F = $F_\text{MSY}$ (vertical dashed line)</i></b> 
+<i><b>Figure 4. Equilibrium yield vs. equilibrium $F$ over a range of $F$ values. MSY is the maximum yield (horizontal dashed line) and occurs at F = $F_\text{MSY}$ (vertical dashed line)</i></b> 
 
 ### Footnote: Ricker stock-recruit equations
 

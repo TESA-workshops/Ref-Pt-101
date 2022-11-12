@@ -54,14 +54,14 @@ tail(DF) # Preview data
 ```
 
 
-We would like to estimate model parameters and MSY-based reference points for this stock. To do this, we first need to fit a population model to the data to estimate the biomass, harvest rate and model parameters. We'll start with a simple Schaefer, or Surplus Production (SP), model (Schaefer 1954). The Schaefer model is: 
+We would like to estimate model parameters and MSY-based reference points for this stock. To do this, we first need to fit a population model to the data to estimate the biomass, fishing mortality rate and model parameters. We'll start with a simple Schaefer, or Surplus Production (SP), model (Schaefer 1954). The Schaefer model is: 
 
 \begin{equation*}
 \tag{1}
 B_{t+1} = B_{t} + r B_{t} \left(1-\frac{B_{t}}{K}\right) - C_{t}
 \end{equation*}
 
-where $B$ is biomass, $r$ is the intrinsic rate of population growth, $K$ is the carrying capacity, $C$ is the catch, and $t$ is a discrete time period (one year in this case). $B_{MSY}$ is then calculated as $K/2$ and $u_{MSY}$ is calculated as $r/2$, where $u$ is annual harvest rate (Hilborn and Walters 1992, Ch. 8; see slides *XXX* of the PPT).
+where $B$ is biomass, $r$ is the intrinsic rate of population growth, $K$ is the carrying capacity, $C$ is the catch, and $t$ is a discrete time period (one year in this case). $B_{MSY}$ is then calculated as $K/2$ and $F_{MSY}$ is calculated as $r/2$, where $F$ is the instantaneous fishing mortality rate (Hilborn and Walters 1992, Ch. 8; see slides *XXX* of the PPT).
 
 We could fit the model using various software packages, or write the code ourselves in R or other languages like ADMB, stan or TMB. Here we use SAMtool, an R package that is part of the openMSE software. When you install the openMSE R package, you will automatically get SAMtool. 
 
@@ -83,7 +83,7 @@ Model <- SP(Data = D)
 K <- Model@TMB_report$K
 r <- Model@TMB_report$r
 BMSY <- K/2
-UMSY <- r/2
+FMSY <- r/2
 
 # Add the biomass and BMSY estimates to the DF object
 DF$Model_biomass <- Model@B[1:length(D@Year)]
@@ -110,9 +110,9 @@ ggplot(DF) +
 <i><b>Figure 2. Time series plot of model estimated biomass over the historical time period with a horizontal line at $B_\text{MSY}$</i></b> 
 
 
-## 2. Numerical projection under constant harvest rates
+## 2. Numerical projection under constant fishing mortality rates
 
-To help understand the concept of equilibrium reference points, let's look at projecting the population forward for 100 years under a constant harvest rate $u$. We'll start with the most recent harvest rate (`terminalU`) to show that the population eventually reaches an equilibrium, or steady, state. In the real world we would interpret this as a long-term average rather than exactly the same value every year.
+To help understand the concept of equilibrium reference points, let's look at projecting the population forward for 100 years under a constant fishing mortality rate $F$. We'll start with the most recent fishing mortality rate (`terminalF`) to show that the population eventually reaches an equilibrium, or steady, state. In the real world we would interpret this as a long-term average rather than exactly the same value every year.
 
 ```{r,warning=F}
 
@@ -127,7 +127,9 @@ ayrs <- (DF$Year[1]):(DF$Year[nyr]+pyr)
 P <- data.frame("Year"=DF$Year, 
     "Biomass"=DF$Model_biomass, 
     "Catch"=DF$Catch,
-    "U"=DF$Catch/DF$Model_biomass)
+    "U"=DF$Catch/DF$Model_biomass,
+    "F"=-log(1-(DF$Catch/DF$Model_biomass))) 
+     
 # Add cells for the projection years
 P[fpyr,] <- NA
 
@@ -135,10 +137,11 @@ P[fpyr,] <- NA
 terminalB <- P$Biomass[nyr]
 terminalC <- P$Catch[nyr]
 terminalU <- terminalC/terminalB
+terminalF <- -log(1-terminalU)
 
 # Populate the projection years
 P$Year[(nyr+1):fpyr] <- pyrs
-P$U[(nyr+1):fpyr] <- terminalU
+P$F[(nyr+1):fpyr] <- terminalF
 
 for(y in (nyr+1):fpyr)
   { # loop over projection years
@@ -146,7 +149,7 @@ for(y in (nyr+1):fpyr)
     lastC <- P[(y-1),"Catch"]
     
     P[y,"Biomass"] <- lastB + r*lastB*(1-lastB/K)-lastC # Projected Biomass from the Schaefer model
-    P[y,"Catch"] <- lastB*terminalU # Projected Catch from the Schaefer model
+    P[y,"Catch"] <- lastB*terminalF # Projected Catch from the Schaefer model
 }
 
 # Plot     
@@ -166,19 +169,19 @@ theme(axis.title.x = element_text(size=12, face="bold"))+
 
 ```
 
-<i><b>Figure 3. Time series plot of biomass and catch for the historical time period and projected over 100 years using the harvest rate from the terminal year </i></b> 
+<i><b>Figure 3. Time series plot of biomass and catch for the historical time period and projected over 100 years using the fishing mortality rate from the terminal year. The vertical dashed line shows the beginning of the projection period under constant $F$ </i></b> 
 
-**Figure 3** shows the historical population biomass to the left of the dashed vertical line, and the projected biomass to the right. The population reached equilibrium under the constant harvest rate quite quickly. Just to extend this a bit, let's do the same with four different harvest rates: $u = 0$, $u =$ `terminalU`, $u = U_{MSY}$, and a high harvest rate that would crash the population ($u = r$). Note that $U_{MSY} = r/2$ from the fitted model.
+**Figure 3** shows the historical population biomass to the left of the dashed vertical line, and the projected biomass to the right. The population reached equilibrium under the constant fishing mortality rate quite quickly. Just to extend this a bit, let's do the same with four different fishing mortality rates: $F = 0$, $F =$ `terminalF`, $F = F_{MSY}$, and a high fishing mortality rate $F = F_{crash}$ that would crash the population. Note that $F_{MSY} = r/2$ from the fitted model.
 
 ```{r,warning=F}
 
 library(reshape2) # Needed for the melt function
 
 # make a vector of values for U and an array P2 for results
-u <- c(0,terminalU, UMSY, r*0.96)
-P2 <- array(NA,dim=c(100,length(u),2),dimnames = list(1:100,u,c("Biomass","Catch")))
+f <- c(0,terminalF, FMSY, r*0.96)
+P2 <- array(NA,dim=c(100,length(f),2),dimnames = list(1:100,f,c("Biomass","Catch")))
 
-for(i in 1:length(u)){ #loop over u
+for(i in 1:length(f)){ #loop over f
   for(y in 1:pyr){     #loop over years
     if(y==1){          #get terminal year (2005) catch and biomass to begin projections for year 1
       lastB <- terminalB
@@ -188,7 +191,7 @@ for(i in 1:length(u)){ #loop over u
       lastC <- P2[(y-1),i,"Catch"]
     }
     P2[y,i,"Biomass"] <- lastB + r*lastB*(1-lastB/K)-lastC # Estimated Biomass from the Schaefer model
-    P2[y,i,"Catch"] <- lastB*u[i] # Estimated Catch from the Schaefer model
+    P2[y,i,"Catch"] <- lastB*f[i] # Estimated Catch from the Schaefer model
   }
 }
 
@@ -196,15 +199,15 @@ for(i in 1:length(u)){ #loop over u
 pB <- P2[,,1] %>% 
   as.data.frame() %>% 
   rename("0" = 1,
-         Uterminal = 2,
-         UMSY = 3,
-         r = 4) %>% 
+         Fterminal = 2,
+         FMSY = 3,
+         Fcrash = 4) %>% 
   mutate("Year" = pyrs) %>% 
-  melt(id="Year",variable="U", value.name="Biomass")
+  melt(id="Year",variable="FM", value.name="Biomass")
 
-# Plot biomass under each U
+# Plot biomass under each F
 ggplot(pB, aes(Year, Biomass)) + 
-  geom_line(aes(color = U), size=1.5) +
+  geom_line(aes(color = FM), size=1.5) +
   geom_line(data=DF,aes(y=Model_biomass,x=Year), colour="purple", size=1.5)+
   geom_vline(xintercept=ayrs[nyr], lty=2)+
   theme_classic() +
@@ -218,52 +221,52 @@ ggplot(pB, aes(Year, Biomass)) +
 
 ```
 
-<i><b>Figure 4. Time series plot of biomass for the historical time period and 100 projected years for four different constant harvest rates</i></b> 
+<i><b>Figure 4. Time series plot of biomass for the historical time period and 100 projected years for four different constant fishing mortality rates</i></b> 
 
-Fishing constantly at any harvest rate results in the stock coming to some equilibrium biomass $B$, ranging between $B = 0$ and $B = K$. The Schaefer model predicts that the stock will eventually come to carrying capacity $K$ under no fishing, and to $B_{MSY}$ under a constant harvest rate of $U_{MSY}$, as shown in the plot.
+Fishing constantly at any fishing mortality rate results in the stock coming to some equilibrium biomass $B$, ranging between $B = 0$ and $B = K$. The Schaefer model predicts that the stock will eventually come to carrying capacity $K$ under no fishing, and to $B_{MSY}$ under a constant fishing mortality rate of $F_{MSY}$, as shown in the plot.
 
-We can see this by comparing final year equilibrium values from the above numerical exercise with the analytical predictions of the Schaefer model (i.e., $B_{MSY} = K/2$ and $u_{MSY} = r/2$). The numerical and analytical solutions for $K$ and $B_{MSY}$ are identical.
+We can see this by comparing final year equilibrium values from the above numerical exercise with the analytical predictions of the Schaefer model (i.e., $B_{MSY} = K/2$ and $F_{MSY} = r/2$). The numerical and analytical solutions for $K$ and $B_{MSY}$ are identical.
 
 ```{r,warning=F}
 
 # Just get the Biomass from the P2 array
-# Column headers are harvest rate u
+# Column headers are fishing mortality rate f
 pB <- P2[,,"Biomass"] %>% 
   as.data.frame()
 tail(pB)
 
 # Final Year Biomass under no fishing
-Beq_0 <- pB[pyr,1] # Column 1 is u = 0
+Beq_0 <- pB[pyr,1] # Column 1 is f = 0
 # Compare to K
 Beq_0 # Numeric solution
 K     # Analytical solution
 
 # Final Year Biomass under Umsy
-Beq_umsy <- pB[pyr,3] # Column 3 is u = Umsy
-Beq_umsy # Numerical solution
+Beq_fmsy <- pB[pyr,3] # Column 3 is f = Fmsy
+Beq_fmsy # Numerical solution
 K/2    # Analytical solution
 
 ```
 
-This is what is meant by "equilibrium reference points", i.e., if we run out a model for a long time under constant harvest rate and constant conditions, it will "equilibrate" at the analytically-predicted values. We will see in the next exercise that there is no analytical solution for $F_{MSY}$ in age-structured models, but the idea that equilibrium reference points represent the results of running out a model for a long time under constant fishing mortality rates is the same (although there are fortunately short-cut numerical methods so we don't have to do this).
+This is what is meant by "equilibrium reference points", i.e., if we run out a model for a long time under constant fishing mortality rate and constant conditions, it will "equilibrate" at the analytically-predicted values. We will see in the next exercise that there is no analytical solution for $F_{MSY}$ in age-structured models, but the idea that equilibrium reference points represent the results of running out a model for a long time under constant fishing mortality rates is the same (although there are fortunately short-cut numerical methods so we don't have to do this).
 
 Of course, in the real world there are never constant conditions. Equilibrium reference points such as $B_{MSY}$ represent some long-term average with annual fluctuations around this average. This assumes there are no directional trends or major shifts in model parameters or environmental conditions. The problem of non-stationarity becomes much more complex with statistical catch-at-age models, which may have trends or shifts in parameters such as growth, natural mortality or selectivity-at-age, or in observed population data such as weight-at-age. Calculating reference points under these conditions requires some extra assumptions (such as whether to average time-varying variables and over what period), which are often quite subjective. These choices can be impactful in terms of interpretation of reference points and stock status.  Impacts of time-varying variables on reference points and advice is an active area of research (e.g., Haltuch et al. 2009; Holt and Michielsens 2020; Zhang et al. 2020). In this webinar we are trying to illustrate the basic concepts. We will touch on non-stationarity in Exercise 5, but will not have time for detailed analysis.
 
 ## 3. Understanding 'Maximum Sustainable Yield'
 
-We've seen that $B_{MSY}$ is an analytical property of the Schaefer model $\left(K/2\right)$, which can be reproduced numerically by running out the model under a constant harvest rate of $u_{MSY}$. But where did $u_{MSY}$ come from? Next, we'll repeat Step 2 over a range of harvest rates from 0 to 1 in increments of 0.001 and show that the constant harvest rate $u$ that maximizes long-term yield is the same as the estimate of $u_{MSY}$ from Section 1.
+We've seen that $B_{MSY}$ is an analytical property of the Schaefer model $\left(K/2\right)$, which can be reproduced numerically by running out the model under a constant fishing mortality rate of $F_{MSY}$. But where did $F_{MSY}$ come from? Next, we'll repeat Step 2 over a range of fishing mortality rates from 0 to 1 in increments of 0.001 and show that the constant fishing mortality rate $F$ that maximizes long-term yield is the same as the estimate of $F_{MSY}$ from Section 1.
 
-The two-parameter Schaefer model produces a symmetrical yield curve. More complex, non-symmetrical versions of this model exist (e.g., the Pella-Tomlinson model; Hilborn and Walters 1992) and, indeed, similar yield curves are produced by age-structured models. The important concept from this exercise is that $u_{MSY}$ (or its instantaneous equivalent $F_{MSY}$, which we'll see in Exercise 2) is the long-term harvest rate that would maximize yield in the long-term under stable conditions.
+The two-parameter Schaefer model produces a symmetrical yield curve. More complex, non-symmetrical versions of this model exist (e.g., the Pella-Tomlinson model; Hilborn and Walters 1992) and, indeed, similar yield curves are produced by age-structured models. The important concept from this exercise is that $F_{MSY}$ (or its instantaneous equivalent $F_{MSY}$, which we'll see in Exercise 2) is the long-term fishing mortality rate that would maximize yield in the long-term under stable conditions.
 
-In the exercise below, we identify $u_{MSY}$ numerically by running out the model under a sequence of harvest rates and identifying the value of $u$ that maximizes yield in the long term.
+In the exercise below, we identify $F_{MSY}$ numerically by running out the model under a sequence of fishing mortality rates and identifying the value of $F$ that maximizes yield in the long term.
 
 ```{r,warning=F}
 
 # make a sequence of values for U and an array P3 for results
-u <- seq(0,1,0.001)
-P3 <- array(0,dim=c(1000,length(u),2),dimnames = list(1:1000,u,c("Biomass","Catch")))
+f <- seq(0,1,0.001)
+P3 <- array(0,dim=c(1000,length(f),2),dimnames = list(1:1000,f,c("Biomass","Catch")))
 
-for(i in 1:length(u)){
+for(i in 1:length(f)){
   for(y in 1:1000){
     if(y==1){
       lastB <- terminalB
@@ -274,22 +277,22 @@ for(i in 1:length(u)){
     }
   
     P3[y,i,"Biomass"] <- lastB + r*lastB*(1-lastB/K)-lastC #Biomass
-    if(P3[y,i,"Biomass"]<0.000001) P3[y,i,1] <- 0.000
+    #if(P3[y,i,"Biomass"]<0.000001) P3[y,i,1] <- 0.000
     # Get the catch for next year
-    P3[y,i,"Catch"] <- P3[y,i,"Biomass"] * u[i]  # Catch = qEB, but qE = F (assume q=1)
+    P3[y,i,"Catch"] <- P3[y,i,"Biomass"] * f[i]  # Catch = qEB, but qE = F (assume q=1)
   }
 }
 
 # use last year for equilibrium 
-EX3 <- data.frame(u=u,
+EX3 <- data.frame(FM=f,
                   Yield = P3[1000,,2],
                   equil_B = P3[1000,,1])
 
 #test
 maxY  <- max(EX3$Yield)
-umaxY <- EX3$u[which(EX3$Yield==maxY)]
-umaxY
-round(UMSY,3)
+fmaxY <- EX3$FM[which(EX3$Yield==maxY)]
+fmaxY
+round(FMSY,3)
 
 ```
 
@@ -298,7 +301,7 @@ round(UMSY,3)
 # Plot
 
 ggplot(EX3)+
-  geom_path(mapping=aes(y=Yield ,x=u), size=1.5) + 
+  geom_path(mapping=aes(y=Yield ,x=FM), size=1.5) + 
   theme_classic() +
   scale_x_continuous(limits = c(0,1), expand = c(0,0)) +
   scale_y_continuous(limits = c(0,20000), expand = c(0,0)) +
@@ -311,11 +314,11 @@ ggplot(EX3)+
 
 ```
 
-<i><b>Figure 5. Plot of yield vs. harvest rate (u) with a vertical line at $u_{MSY}$ where yield is maximized</i></b> 
+<i><b>Figure 5. Plot of yield vs. Fishing Mortality rate ($F$) with a vertical line at $F_{MSY}$ where yield is maximized</i></b> 
 
-**Figure 5** shows the final year catch (i.e., yield) under each of the tested harvest rates. It confirms that long-term yield is maximized by fishing at $u_{MSY}$, indicated by the blue dashed line.
+**Figure 5** shows the final year catch (i.e., yield) under each of the tested fishing mortality rates. It confirms that long-term yield is maximized by fishing at $F_{MSY}$, indicated by the blue dashed line.
 
-Note: The figure above (an inverted parabola) suggests that we could use calculus to find the harvest rate that maximizes yield (i.e., the derivative of yield with respect to $u$ = 0; See slides **XXX** of the powerpoint). This is indeed how most numerical searches for $u_{MSY}$ or $F_{MSY}$ work. For the purposes of these exercises, however, we used a simpler grid search. This most clearly illustrates the concept of maximizing yield, but please be aware that this is the least efficient means of finding $u_{MSY}$!
+Note: The figure above (an inverted parabola) suggests that we could use calculus to find the fishing mortality rate that maximizes yield (i.e., the derivative of yield with respect to $F$ = 0; See slides **XXX** of the powerpoint). This is indeed how most numerical searches for $F_{MSY}$ work. For the purposes of these exercises, however, we used a simpler grid search. This most clearly illustrates the concept of maximizing yield, but please be aware that this is the least efficient means of finding $F_{MSY}$!
 
 ## References
 

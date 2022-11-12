@@ -128,7 +128,7 @@ P <- data.frame("Year"=DF$Year,
     "Biomass"=DF$Model_biomass, 
     "Catch"=DF$Catch,
     "U"=DF$Catch/DF$Model_biomass,
-    "F"=-log(1-(DF$Catch/DF$Model_biomass))) 
+    "FM"=-log(1-(DF$Catch/DF$Model_biomass))) 
      
 # Add cells for the projection years
 P[fpyr,] <- NA
@@ -141,7 +141,7 @@ terminalF <- -log(1-terminalU)
 
 # Populate the projection years
 P$Year[(nyr+1):fpyr] <- pyrs
-P$F[(nyr+1):fpyr] <- terminalF
+P$FM[(nyr+1):fpyr] <- terminalF
 
 for(y in (nyr+1):fpyr)
   { # loop over projection years
@@ -169,7 +169,7 @@ theme(axis.title.x = element_text(size=12, face="bold"))+
 
 ```
 
-<i><b>Figure 3. Time series plot of biomass and catch for the historical time period and projected over 100 years using the fishing mortality rate from the terminal year. The vertical dashed line shows the beginning of the projection period under constant $F$ </i></b> 
+<i><b>Figure 3. Time series plot of biomass and catch for the historical time period and projected over 100 years using the fishing mortality rate from the terminal year. The vertical dashed line shows the beginning of the projection period under constant $F$. </i></b> 
 
 **Figure 3** shows the historical population biomass to the left of the dashed vertical line, and the projected biomass to the right. The population reached equilibrium under the constant fishing mortality rate quite quickly. Just to extend this a bit, let's do the same with four different fishing mortality rates: $F = 0$, $F =$ `terminalF`, $F = F_\text{MSY}$, and a high fishing mortality rate $F = F_{crash}$ that would crash the population. Note that $F_\text{MSY} = r/2$ from the fitted model.
 
@@ -211,7 +211,7 @@ ggplot(pB, aes(Year, Biomass)) +
   geom_line(data=DF,aes(y=Model_biomass,x=Year), colour="purple", size=1.5)+
   geom_vline(xintercept=ayrs[nyr], lty=2)+
   theme_classic() +
-  ylab("Biomass")+
+  ylab("Biomass")+xlab("Year")+
   ylim(0,110000)+
   xlim(ayrs[1],ayrs[length(ayrs)])+
   theme(axis.text.x = element_text(size=12))+
@@ -221,7 +221,7 @@ ggplot(pB, aes(Year, Biomass)) +
 
 ```
 
-<i><b>Figure 4. Time series plot of biomass for the historical time period and 100 projected years for four different constant fishing mortality rates</i></b> 
+<i><b>Figure 4. Time series plot of biomass for the historical time period and 100 projected years for four different constant fishing mortality rates.  The vertical dashed line shows the beginning of the projection period under constant $F$. </i></b> 
 
 Fishing constantly at any fishing mortality rate results in the stock coming to some equilibrium biomass $B$, ranging between $B = 0$ and $B = K$. The Schaefer model predicts that the stock will eventually come to carrying capacity $K$ under no fishing, and to $B_\text{MSY}$ under a constant fishing mortality rate of $F_\text{MSY}$, as shown in the plot.
 
@@ -305,8 +305,9 @@ ggplot(EX3)+
   theme_classic() +
   scale_x_continuous(limits = c(0,1), expand = c(0,0)) +
   scale_y_continuous(limits = c(0,20000), expand = c(0,0)) +
-  # add vertical line at umsy estimated from model parameter r
+  # add vertical line at Fmsy estimated from model parameter r
   geom_vline(xintercept = r/2, linetype = 2, colour = "blue", size=1.25)+
+  xlab("Fishing Mortality")+
   theme(axis.text.x = element_text(size=12))+
   theme(axis.text.y = element_text(size=12))+
   theme(axis.title.x = element_text(size=12, face="bold"))+

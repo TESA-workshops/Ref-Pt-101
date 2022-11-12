@@ -112,7 +112,7 @@ ggplot(DF) +
 
 ## 2. Numerical projection under constant fishing mortality rates
 
-To help understand the concept of equilibrium reference points, let's look at projecting the population forward for 100 years under a constant fishing mortality rate $F$. We'll start with the most recent fishing mortality rate (`terminalF`) to show that the population eventually reaches an equilibrium, or steady, state. In the real world we would interpret this as a long-term average rather than exactly the same value every year.
+To help understand the concept of equilibrium reference points, let's look at projecting the population forward for 100 years under a constant fishing mortality rate $F$. We'll start with the most recent fishing mortality rate (terminalF) to show that the population eventually reaches an equilibrium, or steady, state. In the real world we would interpret this as a long-term average rather than exactly the same value every year.
 
 ```{r,warning=F}
 
@@ -171,7 +171,7 @@ theme(axis.title.x = element_text(size=12, face="bold"))+
 
 <i><b>Figure 3. Time series plot of biomass and catch for the historical time period and projected over 100 years using the fishing mortality rate from the terminal year. The vertical dashed line shows the beginning of the projection period under constant $F$. </i></b> 
 
-**Figure 3** shows the historical population biomass to the left of the dashed vertical line, and the projected biomass to the right. The population reached equilibrium under the constant fishing mortality rate quite quickly. Just to extend this a bit, let's do the same with four different fishing mortality rates: $F = 0$, $F =$ `terminalF`, $F = F_\text{MSY}$, and a high fishing mortality rate $F = F_{crash}$ that would crash the population. Note that $F_\text{MSY} = r/2$ from the fitted model.
+**Figure 3** shows the historical population biomass to the left of the dashed vertical line, and the projected biomass to the right. The population reached equilibrium under the constant fishing mortality rate quite quickly. Just to extend this a bit, let's do the same with four different fishing mortality rates: $F = 0$, $F =$ terminalF, $F = F_\text{MSY}$, and a high fishing mortality rate $F = F_{crash}$ that would crash the population. Note that $F_\text{MSY} = r/2$ from the fitted model.
 
 ```{r,warning=F}
 
@@ -256,28 +256,33 @@ Of course, in the real world there are never constant conditions. Equilibrium re
 
 We've seen that $B_\text{MSY}$ is an analytical property of the Schaefer model $\left(K/2\right)$, which can be reproduced numerically by running out the model under a constant fishing mortality rate of $F_\text{MSY}$. But where did $F_\text{MSY}$ come from? Next, we'll repeat Step 2 over a range of fishing mortality rates from 0 to 1 in increments of 0.001 and show that the constant fishing mortality rate $F$ that maximizes long-term yield is the same as the estimate of $F_\text{MSY}$ from Section 1.
 
-The two-parameter Schaefer model produces a symmetrical yield curve. More complex, non-symmetrical versions of this model exist (e.g., the Pella-Tomlinson model; Hilborn and Walters 1992) and, indeed, similar yield curves are produced by age-structured models. The important concept from this exercise is that $F_\text{MSY}$ (or its instantaneous equivalent $F_\text{MSY}$, which we'll see in Exercise 2) is the long-term fishing mortality rate that would maximize yield in the long-term under stable conditions.
+The two-parameter Schaefer model produces a symmetrical yield curve. More complex, non-symmetrical versions of this model exist (e.g., the Pella-Tomlinson model; Hilborn and Walters 1992) and, indeed, similar yield curves are produced by age-structured models. The important concept from this exercise is that $F_\text{MSY}$ is the long-term fishing mortality rate that would maximize yield in the long-term under stable conditions.
 
 In the exercise below, we identify $F_\text{MSY}$ numerically by running out the model under a sequence of fishing mortality rates and identifying the value of $F$ that maximizes yield in the long term.
 
 ```{r,warning=F}
+# Test values
+# r <- 0.25
+# K <- 100
+# FMSY <- r/2
 
 # make a sequence of values for U and an array P3 for results
-f <- seq(0,1,0.001)
-P3 <- array(0,dim=c(1000,length(f),2),dimnames = list(1:1000,f,c("Biomass","Catch")))
+f <- seq(0,1,0.0005)
+yrs <- 1000
+P3 <- array(0,dim=c(yrs,length(f),2),dimnames = list(1:yrs,f,c("Biomass","Catch")))
 
 for(i in 1:length(f)){
-  for(y in 1:1000){
+  for(y in 1:yrs){
     if(y==1){
       lastB <- terminalB
       lastC <- terminalC
-    } else {
+     } else {
       lastB <- P3[(y-1),i,"Biomass"]
       lastC <- P3[(y-1),i,"Catch"]
     }
-  
+
     P3[y,i,"Biomass"] <- lastB + r*lastB*(1-lastB/K)-lastC #Biomass
-    #if(P3[y,i,"Biomass"]<0.000001) P3[y,i,1] <- 0.000
+    if(P3[y,i,"Biomass"]<0.000001) P3[y,i,"Biomass"] <- 0.000
     # Get the catch for next year
     P3[y,i,"Catch"] <- P3[y,i,"Biomass"] * f[i]  # Catch = qEB, but qE = F (assume q=1)
   }
@@ -285,16 +290,18 @@ for(i in 1:length(f)){
 
 # use last year for equilibrium 
 EX3 <- data.frame(FM=f,
-                  Yield = P3[1000,,2],
-                  equil_B = P3[1000,,1])
+                  Yield = P3[yrs,,2],
+                  equil_B = P3[yrs,,1])
 
 #test
 maxY  <- max(EX3$Yield)
 fmaxY <- EX3$FM[which(EX3$Yield==maxY)]
 fmaxY
-round(FMSY,3)
+round(FMSY,4)
 
 ```
+
+As you can see, the analytical solution for $F_\text{MSY}$, given by $r/2$ is identical to the numerical solution, which is the fishing mortality rate that produced the maximum final year yield (fmaxY).
 
 
 ```{r}
@@ -319,7 +326,7 @@ ggplot(EX3)+
 
 **Figure 5** shows the final year catch (i.e., yield) under each of the tested fishing mortality rates. It confirms that long-term yield is maximized by fishing at $F_\text{MSY}$, indicated by the blue dashed line.
 
-Note: The figure above (an inverted parabola) suggests that we could use calculus to find the fishing mortality rate that maximizes yield (i.e., the derivative of yield with respect to $F$ = 0; See slides **XXX** of the powerpoint). This is indeed how most numerical searches for $F_\text{MSY}$ work. For the purposes of these exercises, however, we used a simpler grid search. This most clearly illustrates the concept of maximizing yield, but please be aware that this is the least efficient means of finding $F_\text{MSY}$!
+Note: The figure above (an inverted parabola) suggests that we could use calculus to find the fishing mortality rate that maximizes yield (i.e., the derivative of yield with respect to $F$ is zero; See slides **XXX** of the powerpoint). This is indeed how most numerical searches for $F_\text{MSY}$ work. For the purposes of these exercises, however, we used a simpler grid search. This most clearly illustrates the concept of maximizing yield, but please be aware that this is the least efficient means of finding $F_\text{MSY}$!
 
 ## References
 

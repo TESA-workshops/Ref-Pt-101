@@ -1,7 +1,7 @@
 ---
 title: "TESA Reference Points 101"
 output: html_document
-author: "Tim Barrett and Robyn Forrest"
+author: "Tim Barrett, Robyn Forrest, Catarina Wor and Carrie Holt"
 date: "November 15 and 22, 2022"
 ---
 

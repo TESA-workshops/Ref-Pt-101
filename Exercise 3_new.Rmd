@@ -29,9 +29,9 @@ Here, we will use the `MSYcalc()` function that we explored in Exercise 2 to cal
 
 Seven OMs were conditioned to age-composition data for the catch and a survey index for a herring stock (1968-2020) using various assumptions for $h$ and $M$ and future $selectivity$. These OMs were fit specifically for demonstration purposes for this exercise. A dataframe **D** is provided that contains the relevant data for the exercise. Here we assume all seven OMs represent the same stock but with different assumptions on $h$, $M$, and future $selectivity$.
 
-The models were conditioned using a Beverton-Holt stock-recruit relationship (SRR). A base model has an assumed steepness ($h$) of 0.8, a constant natural mortality rate ($M$) of 0.3 for all years and ages and $selectivity$ equal to the maturity ogive. Additional models were fit as sensitivities with alternative $h$ (0.6 or 0.95), and alternative $M$ (0.2 or 0.4) and alternative selectivities. In this exercise we look at the influence of the assumptions of these model parameters on reference point estimates.
+The models were conditioned using a Beverton-Holt stock-recruit relationship (SRR). The base model has an assumed steepness ($h$) of 0.8, a constant natural mortality rate ($M$) of 0.3 for all years and ages and a $selectivity$ ogive equal to the maturity ogive. Additional models were fit as sensitivities with alternative $h$ (0.6 or 0.95), and alternative $M$ (0.2 or 0.4) and alternative selectivities. In this exercise we look at the influence of the assumptions of these model parameters on reference point estimates.
 
-The steepness ($h$) of the stock recruitment relationship is the proportion of unexploited recruitment, $R_0$, produced at 0.2 $B_0$ (Mace and Doonan 1988). The ($h$) parameter is bounded between 0.2 (a straight line, recruitment is proportional to SSB) and 1 (a horizontal line, recruitment is constant across SSB) as shown in **Figure 1** below. See slides XX of the PPT for more information.
+The steepness ($h$) of the stock recruitment relationship is the proportion of unfished recruitment, $R_0$, produced at  $0.2B_0$ (Mace and Doonan 1988). The ($h$) parameter is bounded between 0.2 (a straight line, recruitment is proportional to SSB) and 1 (a horizontal line, recruitment is constant across SSB) as shown in **Figure 1** below. However, note that setting $h = 1$ with the Beverton-Holt SRR is equivalent to assuming the stock is infinitely productive, i.e., infinite recruitment compensation, which is not biologically realistic (Mangel et al. 2013). See also slide **57** of the Powerpoint for more information.
 
 ```{r,echo=F,fig.align='center'}
 hs <- seq(0.2,1,0.1)
@@ -49,9 +49,10 @@ ggplot(XY,aes(x=x,y=y,color=h)) + geom_path() + theme_classic() +
   scale_x_continuous(limits = c(0,1), breaks = seq(0,1,0.1),  expand = c(0, 0)) +
   scale_y_continuous(limits = c(0,1), breaks = seq(0,1,0.1),  expand = c(0, 0)) +
   geom_vline(xintercept = 0.2, linetype = 2) +
+  geom_segment
   guides(color = guide_legend(reverse=TRUE))
 ```
-<i><b>Figure 1. Predicted relative recruitment (R/R~0~) vs. relative spawning stock biomass (SSB/SSB~0~) for various values of steepness (h) of the stock-recruit relationship, where h is the relative recruitment when the relative biomass is 0.2 (vertical dashed line)</i></b> 
+<i><b>Figure 1. Predicted relative recruitment (R/R~0~) vs. relative spawning stock biomass (SSB/SSB~0~) for various values of steepness (*h*) of the stock-recruit relationship, where *h* is the relative recruitment when the relative biomass is 0.2 (vertical dashed line)</i></b> 
 
 
 As we saw in Exercise 2 (or reference to slide numbers), The Beverton-Holt SRR can be parameterized in terms of $\alpha$ and $\beta$ as:

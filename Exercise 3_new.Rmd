@@ -60,14 +60,16 @@ As we saw in Exercise 2 (**or reference to slide numbers**), the Beverton-Holt S
 {R = \frac{\alpha SSB}{1+\beta SSB}}
 \end{equation}
 
-or in terms of $h$, $R_0$, and $\phi_{E0}}$ as: 
+or in terms of $h$, $R_0$, and $\phi_{E0}$ as: 
 
 \begin{equation}
 \tag{2}
-{R = \frac{4R_0hSSB}{(1-h)R_0\phi_{E0}}+(5h-1)SSB}}
+{R = \frac{4R_0hSSB}{(1-h)R_0\phi_{E0}+(5h-1)SSB}}
 \end{equation}
 
-where $h = \frac{\alpha\phi_{E0}}}{4+\alpha\phi_{E0}}}$ and $R_0 = \frac{1}{\beta}(\alpha-\frac{1}{\phi_{E0}})$
+$h = \frac{\alpha\phi_{E0}}{4+\alpha\phi_{E0}}$ and 
+
+$R_0 = \frac{1}{\beta}(\alpha-\frac{1}{\phi_{E0}})$
 
 Here we use the parameterization in **Equation 2**. See Powerpoint Slide **56** for Ricker equations.
 

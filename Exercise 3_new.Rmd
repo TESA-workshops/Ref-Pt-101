@@ -31,7 +31,7 @@ Seven OMs were conditioned to age-composition data for the catch and a survey in
 
 The models were conditioned using a Beverton-Holt stock-recruit relationship (SRR). The base model has an assumed steepness ($h$) of 0.8, a constant natural mortality rate ($M$) of 0.3 for all years and ages and a $selectivity$ ogive equal to the maturity ogive. Additional models were fit as sensitivities with alternative $h$ (0.6 or 0.95), and alternative $M$ (0.2 or 0.4) and alternative selectivities. In this exercise we look at the influence of the assumptions of these model parameters on reference point estimates.
 
-The steepness ($h$) of the stock recruitment relationship is the proportion of unfished recruitment, $R_0$, produced at  $0.2B_0$ (Mace and Doonan 1988). The ($h$) parameter is bounded between 0.2 (a straight line, recruitment is proportional to SSB) and 1 (a horizontal line, recruitment is constant across SSB) as shown in **Figure 1** below. However, note that setting $h = 1$ with the Beverton-Holt SRR is equivalent to assuming the stock is infinitely productive, i.e., infinite recruitment compensation, which is not biologically realistic (Mangel et al. 2013). See also slide **57** of the Powerpoint.
+The steepness ($h$) of the stock recruitment relationship is the proportion of unfished recruitment, $R_0$, produced at  $0.2B_0$ (Mace and Doonan 1988). The ($h$) parameter is bounded between 0.2 (a straight line, recruitment is proportional to SSB) and 1 (a horizontal line, recruitment is constant across SSB) as shown in **Figure 1** below. However, note that setting $h = 1$ with the Beverton-Holt SRR is equivalent to assuming the stock is infinitely productive, i.e., infinite recruitment compensation, which is not biologically realistic (Mangel et al. 2013). See also slide **53** of the Powerpoint.
 
 ```{r,echo=F,fig.align='center'}
 hs <- seq(0.2,1,0.1)
@@ -53,7 +53,7 @@ ggplot(XY,aes(x=x,y=y,color=h)) + geom_path() + theme_classic() +
 ```
 <i><b>Figure 1. Predicted relative recruitment (R/R~0~) vs. relative spawning stock biomass (SSB/SSB~0~) for various values of steepness (*h*) of the stock-recruit relationship, where *h* is the relative recruitment when the relative biomass is 0.2 (vertical dashed line)</i></b> 
 
-As we saw in Exercise 2 (**or reference to slide numbers**), the Beverton-Holt SRR is parameterized in terms of $\alpha$ and $\beta$ as:
+As we saw in Exercise 2 (or slide **49** of the Powerpoint), the Beverton-Holt SRR is parameterized in terms of $\alpha$ and $\beta$ as:
 
 \begin{equation}
 \tag{1}
@@ -71,7 +71,7 @@ $h = \frac{\alpha\phi_{E0}}{4+\alpha\phi_{E0}}$ and
 
 $R_0 = \frac{1}{\beta}(\alpha-\frac{1}{\phi_{E0}})$
 
-Here we use the parameterization in **Equation 2**. See Exercise 2 or Powerpoint Slide **56** for Ricker equations.
+Here we use the parameterization in **Equation 2**. See Exercise 2 or Powerpoint Slide **53** for Ricker equations.
 
 *Note*: The SRRs in these OMs are parameterized using a specified fixed $h$ and the mean $\phi_{E0}$ over the first five historical years, and $R_0$ is estimated during the OM conditioning. This was done for <u>demonstration purposes only</u> to explore the influence of $h$ on reference point estimates. The practice of fixing $h$ is generally not recommended for stock assessment. Punt (2008) suggests to never base $B_\text{MSY}$ on an estimate from a stock assessment when $h$ is fixed (i.e., not estimated) in the assessment. Common practice is to use priors for $h$ when fitting assessment models (e.g., Myers et al. 1999; Mangel et al. 2010; 2013). 
 
@@ -128,7 +128,7 @@ source("source_ftns.r")
 D <- readRDS("Ex3data.rda") # The data required for this exercise is saved in a single data frame
 
 # D contains columns with Year, model estimated SSB in kt, model estimated age-0 recruitment (millions), the Beverton-Holt a and b parameters, and the weight-at-age (waa in kg), proportion maturity-at-age (mat), M-at-age, and selectivity-at-age (sel).
-head(D)
+D[D$Year==1968,] # Preview D
 ```
 
 ## Calculate $F_\text{MSY}$, $B_\text{MSY}$, and $B_0$ for each OM. 
@@ -158,8 +158,8 @@ for(i in 1:7){
   waa <- D$waa[D$OM==OM[i] & D$Age %in% ages]
   mat <- D$mat[D$OM==OM[i] & D$Age %in% ages]
   sel <- D$sel[D$OM==OM[i] & D$Age %in% ages]
-  BHa <- D$BHa[D$OM==OM[i] & !is.na(D$BHa)]
-  BHb <- D$BHb[D$OM==OM[i] & !is.na(D$BHb)]
+  BHa <- D$BHa[D$OM==OM[i]][1]
+  BHb <- D$BHb[D$OM==OM[i]][1]
 
   RP <- MSYcalc(M,waa,mat,sel,a=BHa,b=BHb)
   # Add reference point calculations to the OMpars dataframe
@@ -206,9 +206,9 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions"
   geom_point(data=D[D$OM==OM[2],],mapping=aes(y=Rec,x=SSB),colour='blue') +
   geom_point(data=D[D$OM==OM[3],],mapping=aes(y=Rec,x=SSB),colour='red') +
   # Model estimated SRR
-  geom_function(fun=function(x) (D$BHa[D$OM==OM[1] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[1] & !is.na(D$BHb)]*x)),colour="black",linetype=1) +
-    geom_function(fun=function(x) (D$BHa[D$OM==OM[2] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[2] & !is.na(D$BHb)]*x)),colour="blue",linetype=1) +
-    geom_function(fun=function(x) (D$BHa[D$OM==OM[3] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[3] & !is.na(D$BHb)]*x)),colour="red",linetype=1) 
+  geom_function(fun=function(x) (D$BHa[D$OM==OM[1]][1]*x / (1+D$BHb[D$OM==OM[1]][1]*x)), colour="black",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[2]][1]*x / (1+D$BHb[D$OM==OM[2]][1]*x)), colour="blue",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[3]][1]*x / (1+D$BHb[D$OM==OM[3]][1]*x)), colour="red",linetype=1) 
 ```
 
 <i><b>Figure 3. Model-estimated stock-recruit pairs and stock-recruit relationships for OMs <span style="color:blue">B</span>, A, and <span style="color:red">C</span> with steepness (h) of <span style="color:blue">0.6</span>, 0.8, and <span style="color:red">0.95</span>, respectively</i></b> 
@@ -267,9 +267,9 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions"
   geom_point(data=D[D$OM==OM[2],],mapping=aes(y=Rec,x=SSB),colour='blue') +
   geom_point(data=D[D$OM==OM[3],],mapping=aes(y=Rec,x=SSB),colour='red') +
   # Model estimated SRR
-  geom_function(fun=function(x) (D$BHa[D$OM==OM[1] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[1] & !is.na(D$BHb)]*x)),colour="black",linetype=1) +
-    geom_function(fun=function(x) (D$BHa[D$OM==OM[2] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[2] & !is.na(D$BHb)]*x)),colour="blue",linetype=1) +
-    geom_function(fun=function(x) (D$BHa[D$OM==OM[3] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[3] & !is.na(D$BHb)]*x)),colour="red",linetype=1) +
+  geom_function(fun=function(x) (D$BHa[D$OM==OM[1]][1]*x / (1+D$BHb[D$OM==OM[1]][1]*x)), colour="black",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[2]][1]*x / (1+D$BHb[D$OM==OM[2]][1]*x)), colour="blue",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[3]][1]*x / (1+D$BHb[D$OM==OM[3]][1]*x)), colour="red",linetype=1) +
   # Line with slope 1/phi0 through the origin. Note that phi0 does not depend on h so they overlap
   geom_function(fun=function(x) (1/plot_list[[1]]$phi_f[1]*x),colour="grey",linetype=2) +
   geom_function(fun=function(x) (1/plot_list[[2]]$phi_f[1]*x),colour="grey",linetype=2) +
@@ -302,9 +302,9 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions"
   geom_point(data=D[D$OM==OM[4],],mapping=aes(y=Rec,x=SSB),colour='blue') +
   geom_point(data=D[D$OM==OM[5],],mapping=aes(y=Rec,x=SSB),colour='red') +
   # Model estimated SRR
-  geom_function(fun=function(x) (D$BHa[D$OM==OM[1] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[1] & !is.na(D$BHb)]*x)),colour="black",linetype=1) +
-    geom_function(fun=function(x) (D$BHa[D$OM==OM[4] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[4] & !is.na(D$BHb)]*x)),colour="blue",linetype=1) +
-    geom_function(fun=function(x) (D$BHa[D$OM==OM[5] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[5] & !is.na(D$BHb)]*x)),colour="red",linetype=1) 
+  geom_function(fun=function(x) (D$BHa[D$OM==OM[1]][1]*x / (1+D$BHb[D$OM==OM[1]][1]*x)), colour="black",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[4]][1]*x / (1+D$BHb[D$OM==OM[4]][1]*x)), colour="blue",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[5]][1]*x / (1+D$BHb[D$OM==OM[5]][1]*x)), colour="red",linetype=1) 
 ```
 
 <i><b>Figure 7. Model-estimated stock-recruit pairs and stock-recruit relationship for OMs <span style="color:blue">D</span>, A, and <span style="color:red">E</span> with natural mortality rate (M) of <span style="color:blue">0.2</span>, 0.3, and <span style="color:red">0.4</span>, respectively.</i></b> 
@@ -314,7 +314,7 @@ We can see from **Figure 7** that with higher $M$, more recruits are needed to e
 <br>
 $F_\text{MSY}$:
 
-In general, if a stock has a higher $M$ then it is more productive and is reslient to a higher *F*. We see this in **Table 1** and a plot of yield relative to *F* (**Figure 8**) where $F_\text{MSY}$ increases with increasing $M$. 
+In general, if a stock has a higher $M$ then it is more productive and is resilient to a higher *F*. We see this in **Table 1** and a plot of yield relative to *F* (**Figure 8**) where $F_\text{MSY}$ increases with increasing $M$. 
 
 ```{r,warning=F}
 ggplot() + theme_classic() + labs(x="F",y="Yield (kt)") +
@@ -365,9 +365,9 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions"
   geom_point(data=D[D$OM==OM[4],],mapping=aes(y=Rec,x=SSB),colour='blue') +
   geom_point(data=D[D$OM==OM[5],],mapping=aes(y=Rec,x=SSB),colour='red') +
   # Model estimated SRR
-  geom_function(fun=function(x) (D$BHa[D$OM==OM[1] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[1] & !is.na(D$BHb)]*x)),colour="black",linetype=1) +
-    geom_function(fun=function(x) (D$BHa[D$OM==OM[4] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[4] & !is.na(D$BHb)]*x)),colour="blue",linetype=1) +
-    geom_function(fun=function(x) (D$BHa[D$OM==OM[5] & !is.na(D$BHa)]*x / (1+D$BHb[D$OM==OM[5] & !is.na(D$BHb)]*x)),colour="red",linetype=1) +
+  geom_function(fun=function(x) (D$BHa[D$OM==OM[1]][1]*x / (1+D$BHb[D$OM==OM[1]][1]*x)), colour="black",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[4]][1]*x / (1+D$BHb[D$OM==OM[4]][1]*x)), colour="blue",linetype=1) +
+    geom_function(fun=function(x) (D$BHa[D$OM==OM[5]][1]*x / (1+D$BHb[D$OM==OM[5]][1]*x)), colour="red",linetype=1) +
   # Line with slope 1/phi0 through the origin. Note that phi0 depends on M
   geom_function(fun=function(x) (1/plot_list[[1]]$phi_f[1]*x),colour="black",linetype=2) +
   geom_function(fun=function(x) (1/plot_list[[4]]$phi_f[1]*x),colour="blue",linetype=2) +
@@ -382,7 +382,10 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions"
 
 <br>
 
-Estimates of $M$ influence estimates of $B_0$ and the MSY reference points. In general a higher $M$ results in a **lower** estimate of $B_0$, a higher $F_\text{MSY}$, and a lower ratio of $\frac{B_\text{MSY}}{B_0}$ (He et al. 2011; Szuwalski and Punt 2012; Punt et al. 2021). *Although the magnitude of the MSY reference points are influenced by $M$, estimates of $B_\text{MSY}$ depend more strongly on $h$ and are not impacted substantially by $M$ when $h$ is correctly specified (Punt et al. 2021). I don't agree with this. BMSY is strongly influenced by M, and it is not possible to know whether h is correctly specified. Steepness and M are often confounded. I would delete this bit. There may be some subtle estimation effects that Punt is talking about, but the analytical correlation between Bmsy and M is negative*. 
+Estimates of $M$ influence estimates of $B_0$ and the MSY reference points. <u>In general</u> a higher $M$ results in a **lower** estimate of $B_0$, a higher $F_\text{MSY}$, a lower estimate of $B_\text{MSY}$, and and a lower ratio of $\frac{B_\text{MSY}}{B_0}$ (He et al. 2011; Szuwalski and Punt 2012; Punt et al. 2021). Although was no clear relationship between $B_\text{MSY}$ and $M$ in **Table 2** and **Figure 9**, in theory a higher $M$ results in a lower $B_\text{MSY}$. The discrepancy in the example here could be due to subtle estimation effects in the stock-recruit relationship parameters.
+
+
+*Although the magnitude of the MSY reference points are influenced by $M$, estimates of $B_\text{MSY}$ depend more strongly on $h$ and are not impacted substantially by $M$ when $h$ is correctly specified (Punt et al. 2021). I don't agree with this. BMSY is strongly influenced by M, and it is not possible to know whether h is correctly specified. Steepness and M are often confounded. I would delete this bit. There may be some subtle estimation effects that Punt is talking about, but the analytical correlation between Bmsy and M is negative*. 
 
 ## Infuence of selectivity {.tabset}
 

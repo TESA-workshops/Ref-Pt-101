@@ -53,26 +53,25 @@ ggplot(XY,aes(x=x,y=y,color=h)) + geom_path() + theme_classic() +
 ```
 <i><b>Figure 1. Predicted relative recruitment (R/R~0~) vs. relative spawning stock biomass (SSB/SSB~0~) for various values of steepness (*h*) of the stock-recruit relationship, where *h* is the relative recruitment when the relative biomass is 0.2 (vertical dashed line)</i></b> 
 
-
-As we saw in Exercise 2 (or reference to slide numbers), The Beverton-Holt SRR can be parameterized in terms of $\alpha$ and $\beta$ as:
+As we saw in Exercise 2 (**or reference to slide numbers**), the Beverton-Holt SRR is parameterized in terms of $\alpha$ and $\beta$ as:
 
 \begin{equation}
 \tag{1}
 {R = \frac{\alpha SSB}{1+\beta SSB}}
 \end{equation}
 
-or in terms of $h$, $R_0$, and $\phi_0$ as: 
+or in terms of $h$, $R_0$, and $\phi_{E0}}$ as: 
 
 \begin{equation}
 \tag{2}
-{R = \frac{4R_0hSSB}{(1-h)R_0\phi_0+(5h-1)SSB}}
+{R = \frac{4R_0hSSB}{(1-h)R_0\phi_{E0}}+(5h-1)SSB}}
 \end{equation}
 
-where $h = \frac{\alpha\phi_0}{4+\alpha\phi_0}$ and $R_0 = \frac{1}{\beta}(\alpha-\frac{1}{\phi_0})$
+where $h = \frac{\alpha\phi_{E0}}}{4+\alpha\phi_{E0}}}$ and $R_0 = \frac{1}{\beta}(\alpha-\frac{1}{\phi_{E0}})$
 
-Here we use the parameterization in **Equation 2**.
+Here we use the parameterization in **Equation 2**. See Powerpoint Slide **56** for Ricker equations.
 
-*Note*: The SRRs in these OMs are parameterized using a specified fixed $h$ and the mean $\phi_0$ over the first 5 historical years, and $R_0$ is estimated during the OM conditioning. This was done for <u>demonstration purposes only</u> to explore the influence of $h$ on reference point estimates. The practice of fixing $h$ is generally not recommended for stock assessment. Punt (2008) suggests to never base $B_\text{MSY}$ on an estimate from a stock assessment when $h$ is fixed (and not estimated) in the assessment. Common practice is to use priors for $h$ when fitting assessment models (e.g., Myers et al. 1999; Mangel et al. 2010). 
+*Note*: The SRRs in these OMs are parameterized using a specified fixed $h$ and the mean $\phi_{E0}}$ over the first 5 historical years, and $R_0$ is estimated during the OM conditioning. This was done for <u>demonstration purposes only</u> to explore the influence of $h$ on reference point estimates. The practice of fixing $h$ is generally not recommended for stock assessment. Punt (2008) suggests to never base $B_\text{MSY}$ on an estimate from a stock assessment when $h$ is fixed (i.e., not estimated) in the assessment. Common practice is to use priors for $h$ when fitting assessment models (e.g., Myers et al. 1999; Mangel et al. 2010; 2013). 
 
 ## The Operating Models (OMs)
 
@@ -93,7 +92,9 @@ OMpars<-data.frame(OM,h,M,Selectivity=sel,Fmsy=NA,SSBmsy=NA,SSB0=NA)
 OMpars[,1:4] %>% kbl(align=c(rep('c',7))) %>% kable_styling()
 ```
 
-Along with different values of $h$ and $M$, three $selectivity$ scenarios are explored. The first (***mat***) is the maturity ogive. A <i><span style="color:red">low</span></i> and <i><span style="color:blue">high</span></i> scenario represent the maturity ogive shifted to the left and right, respectively, by an age of 1 on the x-axis (**Figure 2**). Note that selectivity changes demonstrated here are simple shifts of the maturity ogive and this was done only for <u>demonstration purposes</u>. In reality, the selectivity curves could be expected to have much different shapes than the maturity ogive and sensitivity analyses may be conducted between curves with different shapes (e.g., dome-shaped vs. logistic) to explore the influence of different structural assumptions on the reference points.
+Along with different values of $h$ and $M$, three $selectivity$ scenarios are explored. The first (***mat***) is the maturity ogive. A <i><span style="color:red">low</span></i> and <i><span style="color:blue">high</span></i> scenario represent the maturity ogive shifted to the left and right, respectively, by an age of 1 on the x-axis (**Figure 2**). Note that selectivity changes demonstrated here are simple shifts of the maturity ogive and this was done only for <u>demonstration purposes</u>. In reality, the selectivity curves could be expected to have  different shapes than the maturity ogive and sensitivity analyses would be conducted between curves with different shapes (e.g., dome-shaped vs. logistic) to explore the influence of different structural assumptions in selectivity on the reference points. 
+
+Note that when the selectivity curve is to the right of the maturity ogive, this implies that a portion of the spawning population is invulnerable to the fishery. When the selectivity ogive is to the left of the maturity ogive, this implies that fish are vulnerable to the fishery before they have had a chance to spawn, which may lead to recruitment overfishing. See Myers and Mertz (1998) for discussion of this topic. Note also that shift in selectivity relative to maturity is also a mechanism for asymmetrical equilibrium yield curves.
 
 ```{r, echo=F,warning=F,fig.align='center'}
 ages <- 0:11
@@ -114,11 +115,13 @@ ggplot()+ theme_classic() + labs(x="Age",y="Selectivity") +
   geom_function(fun=function(x) (1/(1+exp(10.5-3.67*(x+1)))),colour="red",linetype=3)
 ```
 
-<i><b>Figure 2. Three selectivity scenarios as black = maturity ogive, <span style="color:red">red = low (maturity ogive shifted left by one age)</span>, and <span style="color:blue">blue = high (maturity ogive shifted right by one age)</span></i></b> 
+<i><b>Figure 2. Three selectivity scenarios as black: selectivity = maturity ogive, <span style="color:red">red: low (selectivity ogive shifted left by one age)</span>, and <span style="color:blue">blue: high (selectivity ogive shifted right by one age)</span></i></b> 
 
 ## The Data and Source Code for Functions 
 
 The code for the `MSYcalc()` function is in the "source_ftns.r" file and the data required for the exercise are read into dataframe **D**:
+
+**Why are the SR parameters NA??**
 
 ```{r,warning=F,message=F}
 source("source_ftns.r")
@@ -192,7 +195,7 @@ Now we explore the influence of the different parameters ($h$, $M$, and $selecti
 
 ## Infuence of *h*  {.tabset}
 
-Three OMs (OMs B, A, and C; **Table 1**) were fit with constant $M$ and $selectivity$ but different $h$. The parameterization of the SRR in terms of $h$ is convenient for practitioners due to the interpretation of $h$ in terms of the resilience of the stock (greater resilience with higher $h$), where $h$ is a standardized measure of productivity that appears to be comparable among stocks (Dorn 2002; Miller and Brooks, 2021). The SRRs for the 3 OMs are shown below in **Figure 3** where the stock-recruit pairs are not very different between OMs but the <u>predicted</u> recruitment from the SRRs at low biomass is very different.
+Three OMs (OMs B, A, and C; **Table 1**) were fit with constant $M$ and $selectivity$ but different values of $h$. The parameterization of the SRR in terms of $h$ is convenient for practitioners due to the interpretation of $h$ in terms of the resilience of the stock (greater resilience with higher $h$), where $h$ is a standardized measure of productivity that is comparable among stocks (Dorn 2002; Miller and Brooks, 2021). The SRRs for the three OMs are shown below in **Figure 3** where the stock-recruit pairs are not very different between OMs but the <u>predicted</u> recruitment from the SRRs at low biomass is very different.
 
 ```{r,warning=F}
 ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions") + 
@@ -253,7 +256,7 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") +
 <br>
 $B_0$:
 
-In **Table 2** we can see that the equilibrium unfished SSB (i.e., $SSB_0$) increased with increasing $h$ but the magnitude of increase was not very large and was opposite in direction to $SSB_\text{MSY}$ as $h$ changed. Recall that in Exercise 2 we showed that $SSB_0$ occurred at the intersection of the SRR and a line through the origin with slope equal to $\frac{1}{\phi_0}$. In the region of $SSB_0$, the three SRRs are relatively flat so the intersection of the SRR and line with slope $\frac{1}{\phi_0}$ occur at a similar biomass value on each SRR curve (**Figure 6**).
+In **Table 2** we can see that the equilibrium unfished SSB (i.e., $SSB_0$) increased with increasing $h$ but the magnitude of increase was not very large and was opposite in direction to $SSB_\text{MSY}$ as $h$ changed. Recall that in Exercise 2 we showed that $SSB_0$ occurred at the intersection of the SRR and a line through the origin with slope equal to $\frac{1}{\phi_{E0}}}$. In the region of $SSB_0$, the three SRRs are relatively flat so the intersection of the SRR and line with slope $\frac{1}{\phi_{E0}}}$ occur at a similar biomass value on each SRR curve (**Figure 6**).
 
 ```{r,warning=F}
 ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions")+
@@ -277,12 +280,12 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions"
   geom_vline(xintercept=OMpars$SSB0[3], color = "red",linetype=2) 
 ```
 
-<i><b>Figure 6. Model-estimated stock-recruit pairs and stock-recruit relationship for OMs <span style="color:blue">B</span>, A, and <span style="color:red">C</span> with steepness (h) of <span style="color:blue">0.6</span>, 0.8, and <span style="color:red">0.95</span>, respectively, with vertical lines at SSB~0~ where the stock-recruit curves intersect the dashed line through the origin with slope $\frac{1}{\phi_0}$.</i></b> 
+<i><b>Figure 6. Model-estimated stock-recruit pairs and stock-recruit relationship for OMs <span style="color:blue">B</span>, A, and <span style="color:red">C</span> with steepness (h) of <span style="color:blue">0.6</span>, 0.8, and <span style="color:red">0.95</span>, respectively, with vertical lines at SSB~0~ where the stock-recruit curves intersect the dashed line through the origin with slope $\frac{1}{\phi_{E0}}}$.</i></b> 
 
 <br>
 We saw that as $h$ increases, $B_\text{MSY}$ decreases (and $B_0$) increases. The level of depletion of $B_\text{MSY}$ (i.e., the ratio $\frac{B_\text{MSY}}{B_0}$ therefore decreases with increasing *h* (**Table 2**).
 
-The reliability of estimates of $B_\text{MSY}$ depends on how well $h$ is estimated. Estimates of $h$ can be obtained from meta-analyses (e.g., Thorson et al. 2020) or from life-history characteristics (e.g., Wiff et al. 2018) and these estimates can be can be used to guidance for prior distributions for $h$. Given the sensitivity of the $B_\text{MSY}$ calculation to $h$, alternative reference points (e.g., proxies for $B_\text{MSY}$) may be more reliable when $h$ is highly uncertain.
+The reliability of estimates of $B_\text{MSY}$ depends on how well $h$ is estimated. Estimates of $h$ can be obtained from meta-analyses (e.g., Dorn et al. 2002; Michielsens and McAllister 2004; Forrest et al. 2010; Thorson et al. 2020) or from life-history characteristics (e.g., Wiff et al. 2018) and these estimates can be can be used as guidance for prior distributions for $h$. Given the sensitivity of the $B_\text{MSY}$ calculation to $h$, alternative reference points (e.g., proxies for $B_\text{MSY}$) may be more reliable when $h$ is highly uncertain.
 
 
 ## Infuence of *M*  {.tabset}
@@ -352,7 +355,7 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") +
 <br>
 $B_{0}$:
 
-Lines through the origin with slope $\frac{1}{\phi_0}$ are shown with the three SRRs in **Figure 10** and intersect the SRRs at a similar SSB. The $B_{0}$ values increase with increasing $M$. Although the ratios of $\frac{B_\text{MSY}}{B_0}$ decrease slightly with increases in $M$, the changes are not as extreme as those seen for $h$ (**Table 2**).
+Lines through the origin with slope $\frac{1}{\phi_{E0}}}$ are shown with the three SRRs in **Figure 10** and intersect the SRRs at a similar SSB. The $B_{0}$ values increase with increasing $M$. Although the ratios of $\frac{B_\text{MSY}}{B_0}$ decrease slightly with increases in $M$, the changes are not as extreme as those seen for $h$ (**Table 2**).
 
 ```{r,warning=F}
 ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions") + 
@@ -376,7 +379,7 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions"
   geom_vline(xintercept=OMpars$SSB0[5], color = "red",linetype=2) 
 ```
 
-<i><b>Figure 10. Model-estimated stock-recruit pairs and stock-recruit relationship for OMs <span style="color:blue">D</span>, A, and <span style="color:red">E</span> with natural mortality rate (M) of <span style="color:blue">0.2</span>, 0.3, and <span style="color:red">0.4</span>, respectively, with vertical lines at SSB~0~ where the stock-recruit curves intersect the dashed lines through the origin with slope $\frac{1}{\phi_0}$</i></b> 
+<i><b>Figure 10. Model-estimated stock-recruit pairs and stock-recruit relationship for OMs <span style="color:blue">D</span>, A, and <span style="color:red">E</span> with natural mortality rate (M) of <span style="color:blue">0.2</span>, 0.3, and <span style="color:red">0.4</span>, respectively, with vertical lines at SSB~0~ where the stock-recruit curves intersect the dashed lines through the origin with slope $\frac{1}{\phi_{E0}}}$</i></b> 
 
 <br>
 
@@ -421,15 +424,23 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") +
 
 Dorn, M.W. 2002. Advice on west coast rockfish harvest rates from Bayesian meta-analysis of stock-recruit relationships. North American Journal of Fisheries Management, 22: 280-300.
 
+Forrest, R.E., McAllister, M.K., Dorn, M.W., Martell, S.J.D., & Stanley, R.D. 2010. Hierarchical Bayesian estimation of recruitment parameters and reference points for Pacific rockfishes (Sebastes spp.) under alternative assumptions about the stock–recruit function. Can. J. Fish. Aquat. Sci., 67(10), 1611–1634. https://doi.org/10.1139/F10-077
+
 Hamel, O.S. 2015. A method for calculating a meta-analytical prior for the natural mortality rate using multiple life history correlates. ICES Journal of Marine Science, 72: 62-69.
 
 He, X., Ralston, S., and MacCall, A.D. 2011. Interactions of age-dependent mortality and selectivity functions in age-based stock assessment models. Fishery Bulletin, 109: 198-216.
 
 Mace, P.M., and Doonan, I.J. 1988. A generalised bioeconomic simulation model for fish population dynamics. New Zealand Fishery Assessment Research Document 88/4. Fisheries Research Centre, MAFFish, POB 297, Wellington, NZ.
 
-Mangel, M., Brodziak, J., and DiNard, G. 2010. Reproductive ecology and scientific inference of steepness: a fundamental metric of population dynamics and strategic fisheries management. Fish and Fisheries, 11: 89-104. 
+Mangel, M., Brodziak, J., and DiNard, G. 2010. Reproductive ecology and scientific inference of steepness: a fundamental metric of population dynamics and strategic fisheries management. Fish and Fisheries, 11: 89-104.
+
+Mangel, M., MacCall, A. D., Brodziak, J., Dick, E. J., Forrest, R. E., Pourzand, R., & Ralston, S. 2013. A perspective on steepness, reference points, and stock assessment. Canadian Journal of Fisheries and Aquatic Sciences, 70(6), 930–940. https://doi.org/10.1139/cjfas-2012-0372
+
+Michielsens, C.G.J. and McAllister, M.K. 2004. A Bayesian hierarchical analysis of stock recruit data: quantifying structural and parameter uncertainties. Can. J. Fish. Aquat. Sci.61(6): 1032-1047. https://doi.org/10.1139/f04-048
 
 Myers, R.A., Bowen, K.G., and Barrowman, N.J. 1999. Maximum reproductive rate of fish at low population sizes. Canadian Journal of Fisheries and Aquatic Sciences, 56(12): 2404-2419.
+
+Myers, R. A., & Mertz, G. (1998). THE LIMITS OF EXPLOITATION: A PRECAUTIONARY APPROACH. Ecological Applications, 8(sp1), S165–S169. https://doi.org/10.1890/1051-0761(1998)8[S165:TLOEAP]2.0.CO;2
 
 Punt, A.E. 2008. Refocusing stock assessment in support of policy evaluation. In: Fisheries for Global Welfare and Environment, 5th World Fisheries Congress 2008. Eds: Tsukamoto, K., Kawamura, T., Takeuchi, T., Beard, T.D., and Kaiser, M.J. 139-152pp.
 

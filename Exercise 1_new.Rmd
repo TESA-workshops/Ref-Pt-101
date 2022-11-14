@@ -33,17 +33,17 @@ DF <- read.csv("swordfish.csv")
 
 ggplot(DF) + geom_path(mapping=aes(y=Catch,x=Year), size=1.5) + theme_classic() +
   scale_x_continuous(limits = c(1950,2005), expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0,22000), expand = c(0, 0))+
-  theme(axis.text.x = element_text(size=12))+
-  theme(axis.text.y = element_text(size=12))+
-  theme(axis.title.x = element_text(size=12))+
+  scale_y_continuous(limits = c(0,22000), expand = c(0, 0)) +
+  theme(axis.text.x = element_text(size=12)) +
+  theme(axis.text.y = element_text(size=12)) +
+  theme(axis.title.x = element_text(size=12)) +
   theme(axis.title.y = element_text(size=12))
 ggplot(DF) + geom_path(mapping=aes(y=Index,x=Year), colour="blue", size=1.5) + theme_classic() +
   scale_x_continuous(limits = c(1950,2005), expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0,1200), expand = c(0, 0))+
-  theme(axis.text.x = element_text(size=12))+
-  theme(axis.text.y = element_text(size=12))+
-  theme(axis.title.x = element_text(size=12, face="bold"))+
+  scale_y_continuous(limits = c(0,1200), expand = c(0, 0)) +
+  theme(axis.text.x = element_text(size=12)) +
+  theme(axis.text.y = element_text(size=12)) +
+  theme(axis.title.x = element_text(size=12, face="bold")) +
   theme(axis.title.y = element_text(size=12, face="bold"))
 ```
 
@@ -154,17 +154,17 @@ for(y in (nyr+1):fpyr)
 
 # Plot     
 ggplot(P) + 
-  geom_path(mapping=aes(y=Biomass,x=Year, colour="Biomass"), size=1.5)+
-  geom_path(mapping=aes(y=Catch,x=Year, colour="Catch"), size=1.5)+
+  geom_path(mapping=aes(y=Biomass,x=Year, colour="Biomass"), size=1.5) +
+  geom_path(mapping=aes(y=Catch,x=Year, colour="Catch"), size=1.5) +
   scale_color_manual(name="",
                      breaks=c("Biomass","Catch"),
-                     values=c("Biomass"="purple", "Catch"="black"))+
-  geom_vline(xintercept= P$Year[nyr], lty=2)+
+                     values=c("Biomass"="purple", "Catch"="black")) +
+  geom_vline(xintercept= P$Year[nyr], lty=2) +
   theme_classic() +
-  ylab("Biomass and Catch")+
-  theme(axis.text.x = element_text(size=12))+
-  theme(axis.text.y = element_text(size=12))+
-theme(axis.title.x = element_text(size=12, face="bold"))+
+  ylab("Biomass and Catch") +
+  theme(axis.text.x = element_text(size=12)) +
+  theme(axis.text.y = element_text(size=12)) +
+theme(axis.title.x = element_text(size=12, face="bold")) +
   theme(axis.title.y = element_text(size=12, face="bold")) 
 
 ```
@@ -208,15 +208,15 @@ pB <- P2[,,1] %>%
 # Plot biomass under each F
 ggplot(pB, aes(Year, Biomass)) + 
   geom_line(aes(color = FM), size=1.5) +
-  geom_line(data=DF,aes(y=Model_biomass,x=Year), colour="purple", size=1.5)+
-  geom_vline(xintercept=ayrs[nyr], lty=2)+
+  geom_line(data=DF,aes(y=Model_biomass,x=Year), colour="purple", size=1.5) +
+  geom_vline(xintercept=ayrs[nyr], lty=2) +
   theme_classic() +
-  ylab("Biomass")+xlab("Year")+
-  ylim(0,110000)+
-  xlim(ayrs[1],ayrs[length(ayrs)])+
-  theme(axis.text.x = element_text(size=12))+
-  theme(axis.text.y = element_text(size=12))+
-  theme(axis.title.x = element_text(size=12, face="bold"))+
+  ylab("Biomass")+xlab("Year") +
+  ylim(0,110000) +
+  xlim(ayrs[1],ayrs[length(ayrs)]) +
+  theme(axis.text.x = element_text(size=12)) +
+  theme(axis.text.y = element_text(size=12)) +
+  theme(axis.title.x = element_text(size=12, face="bold")) +
   theme(axis.title.y = element_text(size=12, face="bold")) 
 
 ```
@@ -313,11 +313,11 @@ ggplot(EX3)+
   scale_x_continuous(limits = c(0,1), expand = c(0,0)) +
   scale_y_continuous(limits = c(0,20000), expand = c(0,0)) +
   # add vertical line at Fmsy estimated from model parameter r
-  geom_vline(xintercept = r/2, linetype = 2, colour = "blue", size=1.25)+
-  xlab("Fishing Mortality")+
-  theme(axis.text.x = element_text(size=12))+
-  theme(axis.text.y = element_text(size=12))+
-  theme(axis.title.x = element_text(size=12, face="bold"))+
+  geom_vline(xintercept = r/2, linetype = 2, colour = "blue", size=1.25) +
+  xlab("Fishing Mortality") +
+  theme(axis.text.x = element_text(size=12)) +
+  theme(axis.text.y = element_text(size=12)) +
+  theme(axis.title.x = element_text(size=12, face="bold")) +
   theme(axis.title.y = element_text(size=12, face="bold"))
 
 ```

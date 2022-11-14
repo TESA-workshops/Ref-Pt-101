@@ -71,7 +71,7 @@ $h = \frac{\alpha\phi_{E0}}{4+\alpha\phi_{E0}}$ and
 
 $R_0 = \frac{1}{\beta}(\alpha-\frac{1}{\phi_{E0}})$
 
-Here we use the parameterization in **Equation 2**. See Powerpoint Slide **56** for Ricker equations.
+Here we use the parameterization in **Equation 2**. See Exercise 2 or Powerpoint Slide **56** for Ricker equations.
 
 *Note*: The SRRs in these OMs are parameterized using a specified fixed $h$ and the mean $\phi_{E0}$ over the first five historical years, and $R_0$ is estimated during the OM conditioning. This was done for <u>demonstration purposes only</u> to explore the influence of $h$ on reference point estimates. The practice of fixing $h$ is generally not recommended for stock assessment. Punt (2008) suggests to never base $B_\text{MSY}$ on an estimate from a stock assessment when $h$ is fixed (i.e., not estimated) in the assessment. Common practice is to use priors for $h$ when fitting assessment models (e.g., Myers et al. 1999; Mangel et al. 2010; 2013). 
 
@@ -122,8 +122,6 @@ ggplot()+ theme_classic() + labs(x="Age",y="Selectivity") +
 ## The Data and Source Code for Functions 
 
 The code for the `MSYcalc()` function is in the "source_ftns.r" file and the data required for the exercise are read into dataframe **D**:
-
-**Why are the SR parameters NA??**
 
 ```{r,warning=F,message=F}
 source("source_ftns.r")

@@ -131,11 +131,11 @@ where we use the subscript $_{E}$ because we assume that SSB is a proxy for eggs
 {SSB_0} = {\phi_{E0}}{R_0}
 \end{equation}
 
-*Note:* The `survivorship_F()` function in source_ftns.R can be used here to calculate $l_a$ for any $F_e$ as shown in Equation 4. To obtain unfished $l_{0_{a}}$, set f = 0 in the `survivorship_F()` function.
+*Note:* The `survivorship_F()` function in source_ftns.R can be used here to calculate $l_a$ for any $F_e$ as shown in **Equation 4**. To obtain unfished $l_{0_{a}}$, set f = 0 in the `survivorship_F()` function.
 
 ```{r,message=F}
-surv0 <- survivorship_F(f=0,M=BI$M,n_ages=nrow(BI)) # This is Equation 2 at F = 0
-phiE0 <- sum(surv0*BI$waa*BI$mat) # This is Equation 1 at F = 0
+surv0 <- survivorship_F(f=0,M=BI$M,n_ages=nrow(BI)) # This is Equation 1 at F = 0
+phiE0 <- sum(surv0*BI$waa*BI$mat) # This is Equation 2 at F = 0
 phiE0 # unfished SSB-per-recruit
 
 # R0 is an estimated parameter from the stock-recruit relationship
@@ -143,7 +143,7 @@ SSB0 <- phiE0*R0 # SSB0 = unfished SSB-per-recruit * unfished number of recruits
 SSB0
 ```
 
-The estimation of $SSB_0$ can be shown visually as the SSB at the intersection of the SRR and a line through the origin with slope equal to the inverse of $\phi_0$ (i.e., unfished recruits per spawner). This is illustrated below:
+The estimation of $SSB_0$ can be shown visually as the SSB at the intersection of the SRR and a line through the origin with slope equal to the inverse of $\phi_0$ (i.e., unfished recruits per spawner or the survival rate). This is illustrated in **Figure 2**.
 
 ```{r,out.width="75%"}
 P + geom_function(fun=function(x) (1/phiE0*x),colour="red") +
@@ -190,21 +190,21 @@ The $\alpha$ parameter represents the maximum juvenile survival rate, while the 
 R_0 = \frac{\alpha \phi_{E0}-1}{\beta \phi_{E0}} 
 \end{equation*}
 
-Our model has estimated the leading parameters $R_0$ and steepness $h$ using the parameterization:
+Our model has estimated the leading parameters $R_0$ and steepness $h$ using the Beverton-Holt parameterization:
 
 \begin{equation*}
 \tag{8}
-  R = \frac{4 R_0 h SSB}{(1-h)R_0\phi_0 + (5h-1)SSB}
+  R = \frac{4 R_0 h SSB}{(1-h)R_0\phi_{E0} + (5h-1)SSB}
 \end{equation*}
 
 The $\alpha$ and $\beta$ parameters can be calculated from $R_0$, $h$, and $\phi_0$ as:
 
 \begin{equation*}
 \tag{9}
-  \alpha = \frac{4h}{\phi_{0} (1-h)}
+  \alpha = \frac{4h}{\phi_{E0} (1-h)}
 \end{equation*}
 
-For more on derivation of $\alpha$, see Forrest et al. 2010 and references therein. Once we have an estimate of $\alpha$, we can obtain $\beta$ by rearranging Equation 7:
+For more on derivation of $\alpha$, see Forrest et al. 2010 and references therein. Once we have an estimate of $\alpha$, we can obtain $\beta$ by rearranging **Equation 7**:
 
 \begin{equation*}
 \tag{10}
@@ -221,18 +221,18 @@ beta <- (alpha*phi0-1)/(R0*phi0)
 
 To calculate $SSB_\text{MSY}$ (i.e., $B_\text{MSY}$), we need an estimate of equilibrium recruitment at $F_\text{MSY}$. To identify $F_\text{MSY}$, we therefore need to calculate equilibrium recruitment $R_e$ over a range of equilibrium fishing mortality rates $F_e$. We saw in **Equation 3** that we could estimate $SSB_{0}$ from an estimate of $\phi_{E0}$ and $R_{0}$. Therefore, we can estimate equilibrium SSB ($SSB_{e}$) from $\phi_{F}$ and equilibrium recruitment ($R_{e}$), where $\phi_{F}$ is evaluated at any alternative value of $F$.
 
-We calculate $R_{e}$ for any given $F_{e}$ following Equation 7 with $\phi_{F}$ evaluated at the value $F_{e}$, i.e., 
+We calculate $R_{e}$ for any given $F_{e}$ following **Equation 7** with $\phi_{F}$ evaluated at the value $F_{e}$, i.e., 
 
 \begin{equation*}
 \tag{11}
-R_{e} = \frac{\alpha \phi_{F}-1}{\beta \phi_{F}} 
+R_{e} = \frac{\alpha \phi_{F_e}-1}{\beta \phi_{F_e}} 
 \end{equation*}
 
 and
 
 \begin{equation*}
 \tag{12}
-SSB_e = \phi_{F} R_{e}
+SSB_e = \phi_{F_e} R_{e}
 \end{equation*}
 
 $F_\text{MSY}$ is the fishing mortality rate that maximizes the yield over the long term, where yield-per-recruit is given by a per-recruit version of the Baranov equation:
@@ -257,13 +257,13 @@ The `MSY_calc()` function in source_ftns.R can be used to find $F_\text{MSY}$, $
 
 1) Define a vector for $F_e$ `f <- seq(0,5,0.001)`;
 
-2) For each $F_e$, calculate the SSB-per-recruit ($\phi_{F}$; Equation 5), the equilibrium recruitment at $F_e$ ($R_e$; Equation 11), and the yield-per-recruit at $F_e$ ($YPR_{e}$; Equation 13);
+2) For each $F_e$, calculate the SSB-per-recruit ($\phi_{F_e}$; **Equation 5**), the equilibrium recruitment at $F_e$ ($R_e$; Equation 11), and the yield-per-recruit at $F_e$ ($YPR_{e}$; **Equation 13**);
 
-3) For each $F_e$, calculate the equilibrium yield $Y_e$ as the product of $YPR_F$ and $R_e$ at $F_e$ (Equation 14); 
+3) For each $F_e$, calculate the equilibrium yield $Y_e$ as the product of $YPR_F$ and $R_e$ at $F_e$ (**Equation 14**); 
 
 4) Identify $F_{MSY}$ as the value of $F_e$ that maximizes $Y_e$;
 
-5) Calculate $SSB_{MSY}$ as the product of $\phi_{F}$ and $R_e$ evaluated at $F_{MSY}$ (Equation 12);
+5) Calculate $SSB_{MSY}$ as the product of $\phi_{F_e}$ and $R_e$ evaluated at $F_{MSY}$ (**Equation 12**);
 
 6) Calculate $MSY$ as $Y_e$ evaluated at $F_{MSY}$.
 
@@ -276,7 +276,7 @@ f <- seq(0,5,0.001) # vector of fishing mortality rates
 DF <- data.frame(f=f, phi_f=NA, ypr_f=NA, eq_ssb_f=NA, eq_rec_f=NA, yield_f=NA)
 
 # 2)
-# SSB-per-recruit
+# SSB-per-recruit (Equation 5)
 for(i in 1:length(f)){
  DF$phi_f[i] <- sum(survivorship_F(f=f[i],M=BI$M,n_ages=length(BI$sel),sel=BI$sel,message=F)*BI$waa*BI$mat)
 }  
@@ -284,7 +284,7 @@ for(i in 1:length(f)){
 # Equilibrium recruitment
 DF$eq_rec_f <- (alpha*DF$phi_f-1)/(beta*DF$phi_f) # Equation 11
 
-# Yield-per-recruit
+# Yield-per-recruit (Equation 13)
 for(i in 1:length(f)){
   DF$ypr_f[i] <- sum(survivorship_F(f=f[i],M=BI$M,n_ages=length(BI$sel),sel=BI$sel,message=F)*BI$waa*
                  (1-exp(-(BI$M+f[i]*BI$sel)))*f[i]*BI$sel/(BI$M+f[i]*BI$sel))
@@ -343,18 +343,25 @@ ggplot(DF) + geom_point(mapping=aes(y=yield_f,x=f)) + theme_classic() +
 The Ricker stock-recruit function is defined by two parameters $\alpha$ and $\beta$. The $\alpha$ parameter represents the maximum juvenile survival rate and has exactly the same interpretation as in the Beverton-Holt model. However, the Ricker model can allow for "over-compensation" (lower survival at high stock sizes), so the $\beta$ parameter is not equivalent to that in the Beverton-Holt equation.
 
 \begin{equation*}
-\tag{7a}
+\tag{6a}
   R = \alpha SSBe^{-\beta SSB}
 \end{equation*}
 
 As for Equation 8, we can re-express this function in terms of spawning biomass per recruit:
 
 \begin{equation*}
-\tag{8a}
+\tag{7a}
 R_0 = \frac{ln(\alpha \phi_{E0})}{\beta \phi_{E0}} 
 \end{equation*}
 
-(Walters and Martell 2004, Box 3.1). We assume that the model has estimated the leading parameters $R_{0}$ and steepness $h$. The $\alpha$ and $\beta$ parameters are then derived thus :
+(Walters and Martell 2004, Box 3.1). We assume that the model has estimated the leading parameters $R_{0}$ and steepness $h$ and the Ricker parameterization is:
+
+\begin{equation*}
+\tag{8a}
+  R = \frac{SSB}{\phi_{E0}}(5h)^{\frac{5}{4}\left({1-\frac{SSB}{R_0\phi_{E0}}}\right)}
+\end{equation*}
+
+The $\alpha$ and $\beta$ parameters are derived as:
 
 \begin{equation*}
 \tag{9a}

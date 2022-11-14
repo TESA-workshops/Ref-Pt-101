@@ -287,12 +287,11 @@ We saw that as $h$ increases, $B_\text{MSY}$ decreases (and $B_0$) increases. Th
 
 The reliability of estimates of $B_\text{MSY}$ depends on how well $h$ is estimated. Estimates of $h$ can be obtained from meta-analyses (e.g., Dorn et al. 2002; Michielsens and McAllister 2004; Forrest et al. 2010; Thorson et al. 2020) or from life-history characteristics (e.g., Wiff et al. 2018) and these estimates can be can be used as guidance for prior distributions for $h$. Given the sensitivity of the $B_\text{MSY}$ calculation to $h$, alternative reference points (e.g., proxies for $B_\text{MSY}$) may be more reliable when $h$ is highly uncertain.
 
-
 ## Infuence of *M*  {.tabset}
 
 Three OMs (OMs D, A, and E; **Table 1**) were fit with constant $h$ = 0.8 and constant $selectivity$ but different $M$. The SRRs for the 3 OMs are shown below in **Figure 7**.
 
-$M$ is considered one of the most important parameters in stock assessment but is difficult to estimate (Hamel 2015; Then et al. 2015; Punt et al. 2021). Uncertainty in $M$, is influenced by time varying processes such predation, food availability, disease, and environmental effects (Punt et al. 2021). An additional challenge in estimating $M$ is that it is confounded with $h$ and the growth-rate, and it also declines in selectivity with increasing age (Punt et al. 2021). $M$ is a function of age and sex, but commonly assumed to be a constant in assessment models. $M$ may be fixed, or estimated within an assessment model for which priors on $M$ may be assumed. For simplicity, we assume here that $M$ is a constant across ages and over time.
+$M$ is considered one of the most important parameters in stock assessment but is difficult to estimate (Hamel 2015; Then et al. 2015; Punt et al. 2021). Uncertainty in $M$, is influenced by time varying processes such predation, food availability, disease, and environmental effects (Punt et al. 2021). An additional challenge in estimating $M$ is that it is confounded with $h$ and the growth-rate and selectivity (Punt et al. 2021). $M$ is a function of age and sex, but commonly assumed to be a constant in assessment models. $M$ may be fixed, or estimated within an assessment model for which priors on $M$ are usually assumed. For simplicity, we assume here that $M$ is a constant across ages and over time.
 
 ```{r,warning=F}
 ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions") + 
@@ -315,7 +314,7 @@ We can see from **Figure 7** that with higher $M$, more recruits are needed to e
 <br>
 $F_\text{MSY}$:
 
-In general, if a stock has a higher $M$ then it is more productive and can be subjected to a higher *F*. We see this in **Table 1** and a plot of yield relative to *F* (**Figure 8**) where $F_\text{MSY}$ increases with increasing $M$. 
+In general, if a stock has a higher $M$ then it is more productive and is reslient to a higher *F*. We see this in **Table 1** and a plot of yield relative to *F* (**Figure 8**) where $F_\text{MSY}$ increases with increasing $M$. 
 
 ```{r,warning=F}
 ggplot() + theme_classic() + labs(x="F",y="Yield (kt)") +
@@ -383,13 +382,13 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions"
 
 <br>
 
-Estimates of $M$ influence estimates of $B_0$ and the MSY reference points. In general a higher $M$ results in a higher estimate of $B_0$, a higher $F_\text{MSY}$, and a lower ratio of $\frac{B_\text{MSY}}{B_0}$ (He et al. 2011; Szuwalski and Punt 2012; Punt et al. 2021). Although the magnitude of the MSY reference points are influenced by $M$, estimates of $B_\text{MSY}$ depend more strongly on $h$ and are not impacted substantially by $M$ when $h$ is correctly specified (Punt et al. 2021). 
+Estimates of $M$ influence estimates of $B_0$ and the MSY reference points. In general a higher $M$ results in a **lower** estimate of $B_0$, a higher $F_\text{MSY}$, and a lower ratio of $\frac{B_\text{MSY}}{B_0}$ (He et al. 2011; Szuwalski and Punt 2012; Punt et al. 2021). *Although the magnitude of the MSY reference points are influenced by $M$, estimates of $B_\text{MSY}$ depend more strongly on $h$ and are not impacted substantially by $M$ when $h$ is correctly specified (Punt et al. 2021). I don't agree with this. BMSY is strongly influenced by M, and it is not possible to know whether h is correctly specified. Steepness and M are often confounded. I would delete this bit. There may be some subtle estimation effects that Punt is talking about, but the analytical correlation between Bmsy and M is negative*. 
 
 ## Infuence of selectivity {.tabset}
 
 Three OMs (OMs F, A, and G; **Table 1**) were fit with constant $h$ = 0.8 and constant $M$ = 0.3 but different $selectivity$. The selectivity ogives for the 3 OMs are shown below in **Figure 2**.
 
-The influence of selectivity on the reference points estimates is determined by the relationship between selectivity and the mature ogive. A stock will be more resilient to fishing pressure if adults are given the opportunity to spawn before they are vulnerable to the fishery. As such, we would expect that as the selectivity curve is shifted to the right of the maturity ogive, it would increase $F_\text{MSY}$ and decrease $B_\text{MSY}$. And as the selectivity curve is shifted to the left of the maturity ogive, it would decrease $F_\text{MSY}$ and increase $B_\text{MSY}$. This is demonstrated in **Table 2**, **Figure 11**, and **Figure 12** below. The changes in selectivity also have some influence on $B_0$ and the ratio of $\frac{B_\text{MSY}}{B_0}$, such that both metrics decrease with shifts in selectivity to the right of the maturity ogive and increase with shifts to the left of the maturity ogive (**Table 2**).
+The influence of selectivity on the reference points estimates is determined by the relationship between selectivity and the maturity ogives. A stock will be more resilient to fishing pressure if adults are given the opportunity to spawn before they are vulnerable to the fishery (Myers and Mertz 1998). As such, we would expect that as the selectivity ogive is shifted to the right of the maturity ogive, it would increase $F_\text{MSY}$ and decrease $B_\text{MSY}$. And as the selectivity curve is shifted to the left of the maturity ogive, it would decrease $F_\text{MSY}$ and increase $B_\text{MSY}$. This is demonstrated in **Table 2**, **Figure 11**, and **Figure 12** below. The changes in selectivity also have some influence on $B_0$ and the ratio of $\frac{B_\text{MSY}}{B_0}$, such that both metrics decrease with shifts in selectivity to the right of the maturity ogive and increase with shifts to the left of the maturity ogive (**Table 2**).
 
 ```{r,warning=F}
 ggplot() + theme_classic() + labs(x="F",y="Yield (kt)") + 

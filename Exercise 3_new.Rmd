@@ -73,7 +73,7 @@ $R_0 = \frac{1}{\beta}(\alpha-\frac{1}{\phi_{E0}})$
 
 Here we use the parameterization in **Equation 2**. See Powerpoint Slide **56** for Ricker equations.
 
-*Note*: The SRRs in these OMs are parameterized using a specified fixed $h$ and the mean $\phi_{E0}$ over the first 5 historical years, and $R_0$ is estimated during the OM conditioning. This was done for <u>demonstration purposes only</u> to explore the influence of $h$ on reference point estimates. The practice of fixing $h$ is generally not recommended for stock assessment. Punt (2008) suggests to never base $B_\text{MSY}$ on an estimate from a stock assessment when $h$ is fixed (i.e., not estimated) in the assessment. Common practice is to use priors for $h$ when fitting assessment models (e.g., Myers et al. 1999; Mangel et al. 2010; 2013). 
+*Note*: The SRRs in these OMs are parameterized using a specified fixed $h$ and the mean $\phi_{E0}$ over the first five historical years, and $R_0$ is estimated during the OM conditioning. This was done for <u>demonstration purposes only</u> to explore the influence of $h$ on reference point estimates. The practice of fixing $h$ is generally not recommended for stock assessment. Punt (2008) suggests to never base $B_\text{MSY}$ on an estimate from a stock assessment when $h$ is fixed (i.e., not estimated) in the assessment. Common practice is to use priors for $h$ when fitting assessment models (e.g., Myers et al. 1999; Mangel et al. 2010; 2013). 
 
 ## The Operating Models (OMs)
 
@@ -94,7 +94,7 @@ OMpars<-data.frame(OM,h,M,Selectivity=sel,Fmsy=NA,SSBmsy=NA,SSB0=NA)
 OMpars[,1:4] %>% kbl(align=c(rep('c',7))) %>% kable_styling()
 ```
 
-Along with different values of $h$ and $M$, three $selectivity$ scenarios are explored. The first (***mat***) is the maturity ogive. A <i><span style="color:red">low</span></i> and <i><span style="color:blue">high</span></i> scenario represent the maturity ogive shifted to the left and right, respectively, by an age of 1 on the x-axis (**Figure 2**). Note that selectivity changes demonstrated here are simple shifts of the maturity ogive and this was done only for <u>demonstration purposes</u>. In reality, the selectivity curves could be expected to have  different shapes than the maturity ogive and sensitivity analyses would be conducted between curves with different shapes (e.g., dome-shaped vs. logistic) to explore the influence of different structural assumptions in selectivity on the reference points. 
+Along with different values of $h$ and $M$, three $selectivity$ scenarios are explored. The first (***mat***) is the maturity ogive. A <i><span style="color:red">low</span></i> and <i><span style="color:blue">high</span></i> scenario represent the selectivity ogive shifted to the left and right, respectively, by an age of 1 on the x-axis (**Figure 2**). Note that selectivity changes demonstrated here are simple shifts of the maturity ogive and this was done only for <u>demonstration purposes</u>. In reality, the selectivity curves could be expected to have  different shapes than the maturity ogive and sensitivity analyses would be conducted between curves with different shapes (e.g., dome-shaped vs. logistic) to explore the influence of different structural assumptions in selectivity on the reference points. 
 
 Note that when the selectivity curve is to the right of the maturity ogive, this implies that a portion of the spawning population is invulnerable to the fishery. When the selectivity ogive is to the left of the maturity ogive, this implies that fish are vulnerable to the fishery before they have had a chance to spawn, which may lead to recruitment overfishing. See Myers and Mertz (1998) for discussion of this topic. Note also that shift in selectivity relative to maturity is also a mechanism for asymmetrical equilibrium yield curves.
 
@@ -258,7 +258,7 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") +
 <br>
 $B_0$:
 
-In **Table 2** we can see that the equilibrium unfished SSB (i.e., $SSB_0$) increased with increasing $h$ but the magnitude of increase was not very large and was opposite in direction to $SSB_\text{MSY}$ as $h$ changed. Recall that in Exercise 2 we showed that $SSB_0$ occurred at the intersection of the SRR and a line through the origin with slope equal to $\frac{1}{\phi_{E0}}}$. In the region of $SSB_0$, the three SRRs are relatively flat so the intersection of the SRR and line with slope $\frac{1}{\phi_{E0}}}$ occur at a similar biomass value on each SRR curve (**Figure 6**).
+In **Table 2** we can see that the equilibrium unfished SSB (i.e., $SSB_0$) increased with increasing $h$ but the magnitude of increase was not very large and was opposite in direction to $SSB_\text{MSY}$ as $h$ changed. Recall that in Exercise 2 we showed that $SSB_0$ occurred at the intersection of the SRR and a line through the origin with slope equal to $\frac{1}{\phi_{E0}}$. In the region of $SSB_0$, the three SRRs are relatively flat so the intersection of the SRR and line with slope $\frac{1}{\phi_{E0}}$ occur at a similar biomass value on each SRR curve (**Figure 6**).
 
 ```{r,warning=F}
 ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions")+
@@ -282,7 +282,7 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions"
   geom_vline(xintercept=OMpars$SSB0[3], color = "red",linetype=2) 
 ```
 
-<i><b>Figure 6. Model-estimated stock-recruit pairs and stock-recruit relationship for OMs <span style="color:blue">B</span>, A, and <span style="color:red">C</span> with steepness (h) of <span style="color:blue">0.6</span>, 0.8, and <span style="color:red">0.95</span>, respectively, with vertical lines at SSB~0~ where the stock-recruit curves intersect the dashed line through the origin with slope $\frac{1}{\phi_{E0}}}$.</i></b> 
+<i><b>Figure 6. Model-estimated stock-recruit pairs and stock-recruit relationship for OMs <span style="color:blue">B</span>, A, and <span style="color:red">C</span> with steepness (h) of <span style="color:blue">0.6</span>, 0.8, and <span style="color:red">0.95</span>, respectively, with vertical lines at SSB~0~ where the stock-recruit curves intersect the dashed line through the origin with slope $\frac{1}{\phi_{E0}}$.</i></b> 
 
 <br>
 We saw that as $h$ increases, $B_\text{MSY}$ decreases (and $B_0$) increases. The level of depletion of $B_\text{MSY}$ (i.e., the ratio $\frac{B_\text{MSY}}{B_0}$ therefore decreases with increasing *h* (**Table 2**).
@@ -356,7 +356,7 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Yield (kt)") +
 <br>
 $B_{0}$:
 
-Lines through the origin with slope $\frac{1}{\phi_{E0}}}$ are shown with the three SRRs in **Figure 10** and intersect the SRRs at a similar SSB. The $B_{0}$ values increase with increasing $M$. Although the ratios of $\frac{B_\text{MSY}}{B_0}$ decrease slightly with increases in $M$, the changes are not as extreme as those seen for $h$ (**Table 2**).
+Lines through the origin with slope $\frac{1}{\phi_{E0}}$ are shown with the three SRRs in **Figure 10** and intersect the SRRs at a similar SSB. The $B_{0}$ values increase with increasing $M$. Although the ratios of $\frac{B_\text{MSY}}{B_0}$ decrease slightly with increases in $M$, the changes are not as extreme as those seen for $h$ (**Table 2**).
 
 ```{r,warning=F}
 ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions") + 
@@ -380,7 +380,7 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions"
   geom_vline(xintercept=OMpars$SSB0[5], color = "red",linetype=2) 
 ```
 
-<i><b>Figure 10. Model-estimated stock-recruit pairs and stock-recruit relationship for OMs <span style="color:blue">D</span>, A, and <span style="color:red">E</span> with natural mortality rate (M) of <span style="color:blue">0.2</span>, 0.3, and <span style="color:red">0.4</span>, respectively, with vertical lines at SSB~0~ where the stock-recruit curves intersect the dashed lines through the origin with slope $\frac{1}{\phi_{E0}}}$</i></b> 
+<i><b>Figure 10. Model-estimated stock-recruit pairs and stock-recruit relationship for OMs <span style="color:blue">D</span>, A, and <span style="color:red">E</span> with natural mortality rate (M) of <span style="color:blue">0.2</span>, 0.3, and <span style="color:red">0.4</span>, respectively, with vertical lines at SSB~0~ where the stock-recruit curves intersect the dashed lines through the origin with slope $\frac{1}{\phi_{E0}}$</i></b> 
 
 <br>
 

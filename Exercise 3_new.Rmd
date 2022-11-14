@@ -73,7 +73,7 @@ $R_0 = \frac{1}{\beta}(\alpha-\frac{1}{\phi_{E0}})$
 
 Here we use the parameterization in **Equation 2**. See Powerpoint Slide **56** for Ricker equations.
 
-*Note*: The SRRs in these OMs are parameterized using a specified fixed $h$ and the mean $\phi_{E0}}$ over the first 5 historical years, and $R_0$ is estimated during the OM conditioning. This was done for <u>demonstration purposes only</u> to explore the influence of $h$ on reference point estimates. The practice of fixing $h$ is generally not recommended for stock assessment. Punt (2008) suggests to never base $B_\text{MSY}$ on an estimate from a stock assessment when $h$ is fixed (i.e., not estimated) in the assessment. Common practice is to use priors for $h$ when fitting assessment models (e.g., Myers et al. 1999; Mangel et al. 2010; 2013). 
+*Note*: The SRRs in these OMs are parameterized using a specified fixed $h$ and the mean $\phi_{E0}$ over the first 5 historical years, and $R_0$ is estimated during the OM conditioning. This was done for <u>demonstration purposes only</u> to explore the influence of $h$ on reference point estimates. The practice of fixing $h$ is generally not recommended for stock assessment. Punt (2008) suggests to never base $B_\text{MSY}$ on an estimate from a stock assessment when $h$ is fixed (i.e., not estimated) in the assessment. Common practice is to use priors for $h$ when fitting assessment models (e.g., Myers et al. 1999; Mangel et al. 2010; 2013). 
 
 ## The Operating Models (OMs)
 

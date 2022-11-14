@@ -18,16 +18,21 @@ knitr::opts_chunk$set(echo = T, warnings= F)
   
 **Run the R chunks in Rstudio using the green arrow in each chunk. Run individual lines in the chunks using ctrl+enter. If you want to explore further, you can add your own R code inside any of the chunks, or add your own chunks using ctrl+alt+i. Click on the Knit button in Rstudio to create the document.**
   
-Here we look an operating model (OM) from Exercise 3 where growth is time-varying. The objective of this exercise is to explore $F_\text{MSY}$ and $B_\text{MSY}$ proxy reference points based on Spawning Potential Ratio (SPR). 
+Here we look an operating model (OM) from Exercise 3 where growth is time-varying. The objective of this exercise is to explore $F_\text{MSY}$ and $B_\text{MSY}$ proxy reference points based on Spawning Potential Ratio (SPR), which represents the relative per-recruit survival under fishing compared to under no fishing. A major difference between SPR-based reference points and MSY or B0-based reference points is they do not rely on estimated of recruitment parameters. 
 
-The SPR at a given constant, long-term $F$ is the SSB-per-recruit ($\phi$) divided by the $\phi$ at long-term equilibrium $F = 0$ (Gabriel et al. 1989; Clark 1991; Mace and Sissenwine 1993): 
+The SPR at a given constant long-term $F$, is the SSB-per-recruit at that $F$ ($\phi_F$) divided by the unfished SSB-per-recruit $\phi_{E0}$ (Gabriel et al. 1989; Clark 1991; Mace and Sissenwine 1993): 
 
 \begin{equation}
 \tag{1}
 {SPR_F=\frac{\phi_F}{\phi_{E0}}}
 \end{equation}
 
-A fishing mortality rate $F_\text{X%SPR}$ represents the *F* that results in X% of $\phi_{E0}$. The value of X that results in $F_\text{MSY}$ is an inverse function of $h$ (Williams 2002; Punt et al. 2008; Forrest et al., 2010). However, while $F_\text{MSY}$ is a function of both $h$ and $M$, once X is selected, the calculation of $F_\text{X%SPR}$ is independent of $h$, although still sensitive to $M$ (Forrest et al. 2018). A common proxy for $F_\text{MSY}$ is $F_\text{40%SPR}$ (Mace 1994; Clark 2002; Sainsbury 2008). *F*-based reference points can be interpreted in terms of biomass-based reference points as the equilibrium biomass resulting from long-term fishing at the constant specified *F*. Thus, the equilibrium biomass at $F_{40\%SPR}$ is a proxy for $B_\text{MSY}$, however, $SPR$ percentages in the range of 30-50% are relatively common proxies for $F_\text{MSY}$(MF 2011; PFMC 2014). In New Zealand’s operational guidance, $F_\text{40%SPR}$ corresponds to an $F_\text{MSY}$ for “medium productivity” stocks, while the SPR for “low” and “high” productivity stocks are 45% and 30%, respectively (MF 2011). See MF (2011) for descriptions of the stock productivity classifications. $F_\text{50%SPR}$ has further been suggested by Sainsbury (2008) as a default proxy for $F_\text{MSY}$ when $h$ is unknown, since it provides a high fraction of $MSY$ for $h$ greater than 0.3. Dorn (2002) recommended fishing mortality rates in the range of $F_\text{40%SPR}$ to $F_\text{60%SPR}$ should be considered for data-limited West Coast rockfishes.
+SPR is therefore a ratio of ratios.
+
+A fishing mortality rate $F_\text{X%SPR}$ represents the *F* that results in X% of $\phi_{E0}$. The value of X that results in $F_\text{MSY}$ is an inverse function of $h$ (Williams 2002; Punt et al. 2008; Forrest et al., 2010). However, while $F_\text{MSY}$ is a function of both $h$ and $M$, once X is selected, the calculation of $F_\text{X%SPR}$ is independent of $h$, although still sensitive to $M$ (Forrest et al. 2018). 
+
+A common proxy for $F_\text{MSY}$ is $F_\text{40%SPR}$ (Mace 1994; Clark 2002; Sainsbury 2008).
+Thus, the equilibrium biomass at $F_{40\%SPR}$ is a common proxy for $B_\text{MSY}$. However, $SPR$ percentages in the range of 30-50% are relatively common proxies for $F_\text{MSY}$(MF 2011; PFMC 2014). In New Zealand’s operational guidance, $F_\text{40%SPR}$ corresponds to an $F_\text{MSY}$ for “medium productivity” stocks, while the SPR for “low” and “high” productivity stocks are 45% and 30%, respectively (MF 2011). See MF (2011) for descriptions of the stock productivity classifications. $F_\text{50%SPR}$ has further been suggested by Sainsbury (2008) as a default proxy for $F_\text{MSY}$ when $h$ is unknown, since it provides a higher fraction of $MSY$. Dorn (2002) recommended that fishing mortality rates in the range of $F_\text{40%SPR}$ to $F_\text{60%SPR}$ should be considered for data-limited West Coast rockfishes.
 
 ```{r,warning=F,message=F}
 source("source_ftns.r")
@@ -42,15 +47,17 @@ WAA[,49:53]
 
 ## *MSY* proxies: 40% SPR
 
-Here we estimate $F_\text{40%SPR}$ and the equilibrium SSB from fishing at $F_\text{40%SPR}$ using the mean weight-at-age from the last 5 years historical years. We use the `MSYcalc()` function and provide the at-age vectors for $M$ (`M`), weight-at-age (`waa`), maturity (`mat`), selectivity (`sel`) as well as the Beverton-Holt $\alpha$ (`BHa`) and $\beta$ (`BHb`) parameters. The code for the `MSYcalc()` function is in the file "source_ftns.r". The function calculates:
+Here we estimate $F_\text{40%SPR}$ and the equilibrium SSB from fishing at $F_\text{40%SPR}$ using the mean weight-at-age from the last 5 historical years. We use the `MSYcalc()` function and provide the at-age vectors for $M$ (`M`), weight-at-age (`waa`), maturity (`mat`), selectivity (`sel`) as well as the Beverton-Holt $\alpha$ (`BHa`) and $\beta$ (`BHb`) parameters. The code for the `MSYcalc()` function is in the file "source_ftns.r". 
 
-* $F_\text{MSY}$ as the equilibrium fishing mortality rate ($F_e$) that maximizes yield over a vector of $F_e$ values, 
+The function calculates:
 
-* $MSY$ as the equilibrium yield from fishing long-term at $F_\text{MSY}$,
+* $F_\text{MSY}$ as the equilibrium fishing mortality rate ($F_e$) that maximizes yield over a vector of $F_e$ values; 
 
-* $B_\text{MSY}$ (i.e., $SSB_\text{MSY}$) as the equilibrium SSB from fishing long-term at $F_\text{MSY}$,
+* $MSY$ as the equilibrium yield from fishing long-term at $F_\text{MSY}$;
 
-* $B_{0}$ (i.e., $SSB_{0}$) as the equilibrium SSB at $F$ = 0 (i.e., equilibrium unfished SSB), and
+* $B_\text{MSY}$ (i.e., $SSB_\text{MSY}$) as the equilibrium SSB from fishing long-term at $F_\text{MSY}$;
+
+* $B_{0}$ (i.e., $SSB_{0}$) as the equilibrium SSB at $F$ = 0 (i.e., equilibrium unfished SSB); and
 
 * a dataframe with the vector of $F_e$ and the associated SSB-per-recruit ($\phi_{F_e}$), yield-per-recruit ($YPR$), equilibrium SSB ($SSB_e$), equilibrium recruitment ($R_e$), and yield at each $F_e$. 
 
@@ -83,7 +90,9 @@ DF$eq_ssb_f[DF$f==Fspr40]
 RP$SSBmsy
 ```
 
-In the example here, $F_\text{40%SPR}$ is estimated as 0.403, lower than the estimate of $F_\text{MSY}$ which was 0.517. The $F_\text{MSY}$ estimate is dependent on the $h$ of the SRR. If the $h$ is uncertain or if there are few stock-recruit points at low biomass to inform recruitment dynamics at low biomass (e.g., see **Figure 1**) then the $F_\text{X%SPR}$ can serve as a proxy for $F_\text{MSY}$ that doesn't reply on assumptions of recruitment dynamics at low biomass (Note that the steep drop in the SRR in **Figure 1** occurs below the minimum biomass in the stock-recruit pairs). Here the choice of SPR of 40% was made assuming the stock has a medium productivity, so an assumption of stock productivity is still required to select the percent of SPR to use as a proxy for $F_\text{MSY}$. The assumption of a $h$ of 0.8 would suggest that the stock is fairly resilient or a bit more productive than "medium" and the $F_\text{MSY}$ estimate assuming the $h$ is 0.8 results in approximately 35% SPR. The choice of appropriate reference point will ultimately depend on multiple factors including the validity of assumptions of the SRR and stock productivity.
+In the example here, $F_\text{40%SPR}$ is estimated as 0.403, lower than the estimate of $F_\text{MSY}$ which was 0.517. The $F_\text{MSY}$ estimate is dependent on the $h$ of the SRR. If the $h$ is uncertain or if there are few stock-recruit points at low biomass to inform recruitment dynamics at low biomass (e.g., see **Figure 1**) then the $F_\text{X%SPR}$ can serve as a proxy for $F_\text{MSY}$ that doesn't reply on assumptions of recruitment dynamics at low biomass (Note that the steep drop in the SRR in **Figure 1** occurs below the minimum biomass in the stock-recruit pairs). 
+
+Here the choice of SPR of 40% was made assuming the stock has a medium productivity, so an assumption of stock productivity is still required to select the percent of SPR to use as a proxy for $F_\text{MSY}$. The assumption of a $h$ of 0.8 would suggest that the stock is fairly resilient or a bit more productive than "medium" and the $F_\text{MSY}$ estimate assuming the $h$ is 0.8 results in approximately 35% SPR. The choice of appropriate reference point will ultimately depend on multiple factors including the validity of assumptions of the SRR and stock productivity.
 
 ```{r,warning=F}
 ggplot(D)+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +

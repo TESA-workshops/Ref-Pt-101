@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = T, warnings= F)
 
 **Run the R chunks in Rstudio using the green arrow in each chunk. Run individual lines in the chunks using ctrl+enter. If you want to explore further, you can add your own R code inside any of the chunks, or add your own chunks using ctrl+alt+i. Click on the Knit button in Rstudio to create the document.**
 
-Here, we will use the `MSYcalc()` function that we explored in Exercise 2 to calculate $F_\text{MSY}$, $SSB_\text{MSY}$, and $SSB_0$ for various operating models (OMs) with different model assumptions for the same stock. By the end of the exercise you will get a feel for:
+Here, we will use the `MSYcalc()` function that we explored in **Exercise 2** to calculate $F_\text{MSY}$, $SSB_\text{MSY}$, and $SSB_0$ for various operating models (OMs) with different model assumptions for the same stock. By the end of the exercise you will get a feel for:
 
 * The influence of $h$ on reference point estimates
 
@@ -382,10 +382,7 @@ ggplot() + theme_classic() + labs(x="SSB (kt)",y="Age 0 Recruitment in millions"
 
 <br>
 
-Estimates of $M$ influence estimates of $B_0$ and the MSY reference points. <u>In general</u> a higher $M$ results in a **lower** estimate of $B_0$, a higher $F_\text{MSY}$, a lower estimate of $B_\text{MSY}$, and and a lower ratio of $\frac{B_\text{MSY}}{B_0}$ (He et al. 2011; Szuwalski and Punt 2012; Punt et al. 2021). Although was no clear relationship between $B_\text{MSY}$ and $M$ in **Table 2** and **Figure 9**, in theory a higher $M$ results in a lower $B_\text{MSY}$. The discrepancy in the example here could be due to subtle estimation effects in the stock-recruit relationship parameters.
-
-
-*Although the magnitude of the MSY reference points are influenced by $M$, estimates of $B_\text{MSY}$ depend more strongly on $h$ and are not impacted substantially by $M$ when $h$ is correctly specified (Punt et al. 2021). I don't agree with this. BMSY is strongly influenced by M, and it is not possible to know whether h is correctly specified. Steepness and M are often confounded. I would delete this bit. There may be some subtle estimation effects that Punt is talking about, but the analytical correlation between Bmsy and M is negative*. 
+Estimates of $M$ influence estimates of $B_0$ and the MSY reference points. <u>In general</u> a higher $M$ results in a **lower** estimate of $B_0$, a higher $F_\text{MSY}$ (He et al. 2011; Szuwalski and Punt 2012; Punt et al. 2021). Although was no clear relationship between $B_\text{MSY}$ and $M$ in **Table 2** and **Figure 9**, we will explore the relationship between $B_\text{MSY}$ and $M$ in a model with time-varying $M$ in **Exercise 5**.
 
 ## Infuence of selectivity {.tabset}
 

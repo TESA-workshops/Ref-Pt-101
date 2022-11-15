@@ -14,13 +14,15 @@ knitr::opts_chunk$set(echo = T, warnings= F)
 ## Exercise 5:
 ## Reference points using an age-structured model with time-varying growth
 
+TODO: ADD EXAMPLE WITH TIME-VARYING M, MAYBE AS A SEPARATE EXERCISE
+
 ***DISCLAIMER: These are illustrative, deterministic models and should not be used for stock assessment***
 
 **Run the R chunks in Rstudio using the green arrow in each chunk. Run individual lines in the chunks using ctrl+enter. If you want to explore further, you can add your own R code inside any of the chunks, or add your own chunks using ctrl+alt+i. Click on the Knit button in Rstudio to create the document.**
 
 Here we look at the same operating model (OM) from Exercise 4 where growth is time-varying. The objective of this exercise is to explore the influence of the time period selected to describe growth on reference points and to demonstrate that when the Beverton-Holt stock recruitment parameters ($\alpha$ and $\beta$) are constant and a component  of the unfished SSB-per-recruit ($\phi_0$) changes (i.e., $weight$-$at$-$age$ in this case), the steepness ($h$) and therefore reference points must also change.
 
-The OM was conditioned on age-composition data for the catch and a survey index for a herring stock (time series of 53 years). An R object is provided for the OM that contains the relevant data for the exercise. The model was conditioned using a Beverton-Holt stock-recruit relationship (SRR) with initial assumed $h$ = 0.8 (some discussion on this at the end of the exercise), and a constant $M$ = 0.3 for all years and ages. 
+The OM was conditioned on age-composition data for the catch and a survey index for a herring stock (time series of 53 years). An R object is provided for the OM that contains the relevant data for the exercise. The model was conditioned using a Beverton-Holt stock-recruit relationship (SRR) with initial assumed $h = 0.8$ (some discussion on this at the end of the exercise), and a constant $M = 0.3$ for all years and ages. 
 
 The SRR is plotted below with model-estimated Beverton-Holt $\alpha$ and $\beta$ parameters. For this exercise we assume for simplicity that selectivity is equal to the maturity ogive and is constant over all years. We assume that $weight$-$at$-$age$ varies annually and here we look at how the changes in $weight$-$at$-$age$ influence $B_0$ and $B_\text{MSY}$.
 
@@ -53,12 +55,12 @@ ggplot(WAADF)+geom_path(aes(y=Weight,x=Year,colour=as.factor(Age))) + theme_clas
 
 ## Influence of changes in weight-at-age on $SSB_0$, and $SSB_\text{MSY}$
 
-We first explore the influence of using the mean weight-at-age from 
+We explore the influence of using the mean weight-at-age from 
 
-a) the first 5 years of the time series, and 
-b) the last 5 years of the time series
+a) the first five years of the time series, and 
+b) the last five years of the time series
 
-on estimates of the unfished SSB-per-recruit ($\phi_0$), $SSB_0$, and $SSB_\text{MSY}$.
+on estimates of the unfished SSB-per-recruit ($\phi_{E0}$), $SSB_0$, and $SSB_\text{MSY}$.
 
 ```{r,warning=F,message=F}
 # Unfished survivorship
@@ -73,7 +75,7 @@ phi0_last5
 (phi0_last5-phi0_first5)/phi0_first5
 ```
 
-The change in weight-at-age from the first 5 years of the time series to the last 5 years results in a decrease in $\phi_0$ of about 30%
+The change in weight-at-age from the first five years of the time series to the last five years results in a decrease in $\phi_{E0}$ of about 32%.
 
 ```{r}
 # SSB0
@@ -84,7 +86,7 @@ SSB0_last5
 (SSB0_last5-SSB0_first5)/SSB0_first5
 ```
 
-The change in weight-at-age from the first 5 years of the time series to the last 5 years results in a decrease in $SSB_0$ of about 32%. **Figure 2** shows the SRR with the lines through the origin with slope $\frac{1}{\phi_{0_{first5}}}$ and $\frac{1}{\phi_{0_{last5}}}$ that intersect the SRR at $SSB_{0_{first5}}$ and $SSB_{0_{last5}}$, respectively.
+**Figure 2** shows the SRR with the lines through the origin with slope $\frac{1}{\phi_{E0_{first5}}}$ and $\frac{1}{\phi_{E0_{last5}}}$ that intersect the SRR at $SSB_{0_{first5}}$ and $SSB_{0_{last5}}$, respectively.
 
 ```{r,warning=F}
 ggplot(DF)+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +
@@ -99,7 +101,7 @@ ggplot(DF)+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +
 
 ```
 
-<i><b>Figure 2. Stock-recruit pairs and model-estimated stock-recruit relationship (SRR) with lines through the origin with slopes $\frac{1}{\phi_{0_{first5}}}$ (red) and $\frac{1}{\phi_{0_{last5}}}$ (purple) that intersect the SRR at different *B*~0~ values (vertical lines) for $\phi_{0_{first5}}$ (red) and $\phi_{0_{last5}}$ (purple)</i></b> 
+<i><b>Figure 2. Stock-recruit pairs and model-estimated stock-recruit relationship (SRR) with lines through the origin with slopes $\frac{1}{\phi_{E0_{first5}}}$ (red) and $\frac{1}{\phi_{E0_{last5}}}$ (purple) that intersect the SRR at different *B*~0~ values (vertical lines) for $\phi_{E0_{first5}}$ (red) and $\phi_{E0_{last5}}$ (purple)</i></b> 
 <br>
 
 Next we look at the influence of the change in weight-at-age (`waa`) on $B_\text{MSY}$ where the `MSYcalc` function from "source_ftns.r" is used to calculate $B_\text{MSY}$.
@@ -115,7 +117,7 @@ RP_last5$SSBmsy
 
 ```
 
-The change in weight-at-age from the first 5 years of the time series to the last 5 years results in a decrease in $SSB_\text{MSY}$ of about 32%. 
+The change in weight-at-age from the first five years of the time series to the last five years results in a decrease in $SSB_\text{MSY}$ of about 32%. 
 
 ```{r,warning=F,message=F}
 
@@ -133,23 +135,25 @@ ggplot(DF)+geom_point(mapping=aes(y=Rec,x=SSB)) + theme_classic() +
 
 ```
 
-<i><b>Figure 3. Stock-recruit pairs and model-estimated stock-recruit relationship with vertical dashed lines at the *B*~MSY~ values and vertical solid lines at the *B*~0~ values, calculated from $\phi_{first5}$ (red) and $\phi_{last5}$ (purple)</i></b> 
+<i><b>Figure 3. Stock-recruit pairs and model-estimated stock-recruit relationship with vertical dashed lines at the *B*~MSY~ values and vertical solid lines at the *B*~0~ values, calculated from $\phi_{E0_{first5}}$ (red) and $\phi_{E0_{last5}}$ (purple)</i></b> 
 <br>
 
-We can see the influence of temporal changes in a single component of $\phi_0$ (weight-at-age) on the equilibrium reference point calculations in **Figure 3**. We may also have temporal changes in other productivity parameters (e.g., recruitment, maturity-at-age, $M$) that also influence the equilibrium reference points. There are different approaches to addressing temporal change in these productivity parameters. For example, the default guidance from ICES (2021) is to use data from the last ten historical years to describe properties of population biology and the fishery (i.e., weight-at-age, maturity, $M$, and selectivity). If there is evidence of persistent trends in parameters, ICES (2021) suggests that the period can be decreased to 3 to 5 years, and the period can be extended if there is no evidence of trends. This differs from the available guidance from DFO which suggests that as long a time series as possible should be used to capture variability in productivity (DFO 2009) and that truncation of the data series should only be considered if it is unlikely that the change in productivity will reverse in the short- to medium-term due to a mechanistic understanding of a regime shift or current conditions have persisted for an extended period of time (DFO 2013). National DFO guidance is expected to be forthcoming on this issue of dealing with changes in productivity and defining reference points.
+We can see the influence of temporal changes in a single component of $\phi_{E0}$ (weight-at-age) on the equilibrium reference point calculations in **Figure 3**. We may also have temporal changes in other productivity parameters (e.g., recruitment, maturity-at-age, $M$) that also influence the equilibrium reference points. 
+
+There are different approaches to addressing temporal change in these productivity parameters. For example, the default guidance from ICES (2021) is to use data from the last ten historical years to describe properties of population biology and the fishery (i.e., weight-at-age, maturity, $M$, and selectivity). If there is evidence of persistent trends in parameters, ICES (2021) suggests that the period can be decreased to 3 to 5 years, and the period can be extended if there is no evidence of trends. This differs from the available guidance from DFO which suggests that as long a time series as possible should be used to capture variability in productivity (DFO 2009) and that truncation of the data series should only be considered if it is unlikely that the change in productivity will reverse in the short- to medium-term due to a mechanistic understanding of a regime shift or current conditions have persisted for an extended period of time (DFO 2013). National DFO guidance is expected to be forthcoming on this issue of dealing with changes in productivity and defining reference points.
 
 ## A note on steepness with time-varying growth
 
-In the exercise above, we have assumed that the Beverton-Holt SRR parameters $\alpha$ and $\beta$ are constant and the SRR is a fixed curve. When this assumption is made and we have changes in $\phi_0$ over time, the $h$ and $R_0$ also also change over time if the SRR is to remain fixed. This can create some challenges in the interpretation of the SRR when it is parameterized in terms of $h$, $R_0$, and $\phi_0$.
+In the exercise above, we have assumed that the Beverton-Holt SRR parameters $\alpha$ and $\beta$ are constant and the SRR is a fixed curve. When this assumption is made and we have changes in $\phi_{E0}$ over time, the $h$ and $R_0$ also also change over time if the SRR is to remain fixed. This can create some challenges in the interpretation of the SRR when it is parameterized in terms of $h$, $R_0$, and $\phi_0$.
 
-Remember that the $h$, $R_0$, and $\phi_0$ parameterization is:
+Remember that the $h$, $R_0$, and $\phi_{E0}$ parameterization is:
 
 \begin{equation}
 \tag{1}
 {R = \frac{4R_0hSSB}{(1-h)R_0\phi_0+(5h-1)SSB}}
 \end{equation}
 
-With a fixed SRR, parameterized in terms of $\alpha$ and $\beta$, we calculated $SSB_0$ above using a $\phi_0$ calculated with weight-at-age over the first 5 years of the time series and the last 5 years of the time series. This resulted in two values of the equilibrium unfished SSB ($SSB_0$) as:
+With a fixed SRR, parameterized in terms of $\alpha$ and $\beta$, we calculated $SSB_0$ above using a $\phi_{E0}$ calculated with weight-at-age over the first five years of the time series and the last five years of the time series. This resulted in two values of the equilibrium unfished SSB ($SSB_0$) as:
 
 * $SSB_{0_{first5}}$
 * $SSB_{0_{last5}}$
@@ -163,7 +167,7 @@ R0_first5
 R0_last5
 ```
 
-From exercise 3 we saw $h = \frac{\alpha\phi_0}{4+\alpha\phi_0}$. We can now calculate $h$ over the first 5 years and over the last 5 years using phi_0.
+From Exercise 3 we saw $h = \frac{\alpha\phi_{E0}}{4+\alpha\phi_{E0}}$. We can now calculate $h$ over the first five years and over the last five years using phi_{E0}.
 
 ```{r}
 h_first5 <- (DF$BHa[1]*phi0_first5)/(4+DF$BHa[1]*phi0_first5)
@@ -171,7 +175,11 @@ h_last5 <- (DF$BHa[1]*phi0_last5)/(4+DF$BHa[1]*phi0_last5)
 h_first5
 h_last5
 ```
-Here we can see that $h$ of the SRR is 0.8 when calculated using weight-at-age over the first 5 years and 0.736 when using weight-at-age over the last 5 years. $h$ is a productivity parameter that relates to the resilience of the stock and when productivity changes (e.g., weight-at-age here) the $h$ changes, even though the SRR curve is fixed. This occurs because the change in weight-at-age influences $\phi_0$, which results in different estimates of $SSB_0$ and $R_0$ on the SRR (see **Figure 4**). Since the definition of $h$ is the proportion of $R_0$, produced at 0.2 $B_0$ (Mace and Doonan 1988; see the dashed vertical reference lines at 0.2 $B_0$ in **Figure 4**), the change in weight-at-age influences $h$. When a SRR is parameterized in terms of $h$, $R_0$, and $\phi_0$, the time period associated with the biological and fishery parameters must be fixed to some point in time. In the OM used here, this time period was fixed to the average over the first 5 years which is why the value of $h$ for `h_first5` was 0.8 and matches the $h$ assumed in the OM conditioning. The choice of using a 5-year time period when estimating the SRR in the model was an assumption made in the Open MSE software [(openMSE)](https://openmse.com/) which uses an average over the first $A_{50}$ years of data where $A_{50}$ = approximate age at 50% maturation ~ 5 years for the herring stock used here. 
+Here we can see that $h$ of the SRR is 0.8 when calculated using weight-at-age over the first five years and 0.736 when using weight-at-age over the last five years. $h$ is a productivity parameter that relates to the resilience of the stock. When productivity changes (e.g., weight-at-age here) $h$ changes, *and therefore so does the SRR. If steepness changes then alpha and beta must change, so the SRR must change surely.*
+
+This occurs because the change in weight-at-age influences $\phi_{E0}$, which results in different estimates of $SSB_0$ and $R_0$ on the SRR (see **Figure 4**). Since the definition of $h$ is the proportion of $R_0$ produced at 0.2 $B_0$ (Mace and Doonan 1988; see the dashed vertical reference lines at $0.2B_0$ in **Figure 4**), the change in weight-at-age influences $h$. When a SRR is parameterized in terms of $h$, $R_0$, and $\phi_0$, the time period associated with the biological and fishery parameters must be fixed to some point in time. 
+
+**In the OM used here, this time period was fixed to the average over the first five years which is why the value of $h$ for `h_first5` was 0.8 and matches the $h$ assumed in the OM conditioning. The choice of using a 5-year time period when estimating the SRR in the model was an assumption made in the Open MSE software [(openMSE)](https://openmse.com/) which uses an average over the first $A_{50}$ years of data where $A_{50}$ = approximate age at 50% maturation ~ five years for the herring stock used here.** *I think this is too much detail about what openMSE was doing. I also need to think about this a bit more. I'll look at the Miller paper and at openMSE.* 
 
 See the Miller and Brooks (2021) paper "Steepness is a slippery slope" for more on time-varying productivity and the parameterization of the SRR.
 

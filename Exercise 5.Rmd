@@ -144,9 +144,9 @@ There are different approaches to addressing temporal change in these productivi
 
 ## A note on steepness with time-varying growth
 
-In the exercise above, we have assumed that the Beverton-Holt SRR parameters $\alpha$ and $\beta$ are constant and the SRR is a fixed curve. When this assumption is made and we have changes in $\phi_{E0}$ over time, the $h$ and $R_0$ also also change over time if the SRR is to remain fixed. This can create some challenges in the interpretation of the SRR when it is parameterized in terms of $h$, $R_0$, and $\phi_0$.
+In the exercise above, we have assumed that the Beverton-Holt SRR parameters $\alpha$ and $\beta$ are constant and the SRR is a fixed curve. When this assumption is made and we have changes in $\phi_{E0}$ over time, the $h$ and $R_0$ also also change over time if the SRR is to remain fixed. This can create some challenges in the interpretation of the SRR when it is parameterized in terms of $h$, $R_0$, and $\phi_0$. See Miller and Brooks (2021) for a detailed analysis of time-varying productivity and discussion of its impacts on interpretation of the SRR when it is parameterized in terms of steepness and $R_0$.
 
-Remember that the $h$, $R_0$, and $\phi_{E0}$ parameterization is:
+<!-- Remember that the $h$, $R_0$, and $\phi_{E0}$ parameterization is:
 
 \begin{equation}
 \tag{1}
@@ -175,11 +175,13 @@ h_last5 <- (DF$BHa[1]*phi0_last5)/(4+DF$BHa[1]*phi0_last5)
 h_first5
 h_last5
 ```
-Here we can see that $h$ of the SRR is 0.8 when calculated using weight-at-age over the first five years and 0.736 when using weight-at-age over the last five years. $h$ is a productivity parameter that relates to the resilience of the stock. When productivity changes (e.g., weight-at-age here) $h$ changes, *and therefore so does the SRR. If steepness changes then alpha and beta must change, so the SRR must change surely.*
+Here we can see that $h$ of the SRR is 0.8 when calculated using weight-at-age over the first five years and 0.736 when using weight-at-age over the last five years. $h$ is a productivity parameter that relates to the resilience of the stock. When productivity changes (e.g., weight-at-age here) $h$ changes, even though the SRR curve is fixed.
 
 This occurs because the change in weight-at-age influences $\phi_{E0}$, which results in different estimates of $SSB_0$ and $R_0$ on the SRR (see **Figure 4**). Since the definition of $h$ is the proportion of $R_0$ produced at 0.2 $B_0$ (Mace and Doonan 1988; see the dashed vertical reference lines at $0.2B_0$ in **Figure 4**), the change in weight-at-age influences $h$. When a SRR is parameterized in terms of $h$, $R_0$, and $\phi_0$, the time period associated with the biological and fishery parameters must be fixed to some point in time. 
 
-**In the OM used here, this time period was fixed to the average over the first five years which is why the value of $h$ for `h_first5` was 0.8 and matches the $h$ assumed in the OM conditioning. The choice of using a 5-year time period when estimating the SRR in the model was an assumption made in the Open MSE software [(openMSE)](https://openmse.com/) which uses an average over the first $A_{50}$ years of data where $A_{50}$ = approximate age at 50% maturation ~ five years for the herring stock used here.** *I think this is too much detail about what openMSE was doing. I also need to think about this a bit more. I'll look at the Miller paper and at openMSE.* 
+In the OM used here, this time period was fixed to the average over the first five years which is why the value of $h$ for `h_first5` was 0.8 and matches the $h$ assumed in the OM conditioning. The choice of using a 5-year time period when estimating the SRR in the model was an assumption made in the Open MSE software [(openMSE)](https://openmse.com/) which uses an average over the first $A_{50}$ years of data where $A_{50}$ = approximate age at 50% maturation ~ five years for the herring stock used here. 
+
+*I think this is too much detail about what openMSE was doing. I also need to think about this a bit more. I'll look at the Miller paper and at openMSE.* 
 
 See the Miller and Brooks (2021) paper "Steepness is a slippery slope" for more on time-varying productivity and the parameterization of the SRR.
 
@@ -201,6 +203,8 @@ ggplot()+geom_point(data=DF,mapping=aes(y=Rec,x=SSB)) + theme_classic() +
 
 <i><b>Figure 4. Stock-recruit pairs and model-estimated stock-recruit relationship (SRR) with lines through the origin with slopes $\frac{1}{\phi_{0_{first5}}}$ (red) and $\frac{1}{\phi_{0_{last5}}}$ (purple) that intersect the SRR at different *B*~0~ values (solid vertical lines) and $R_0$ values (points lying on the SRR at *B*~0~). The dashed vertical lines are at 0.2 *B*~0~ for $\phi_{0_{first5}}$ (red) and $\phi_{0_{last5}}$ (purple)</i></b> 
 <br>
+
+-->
 
 ## References
 

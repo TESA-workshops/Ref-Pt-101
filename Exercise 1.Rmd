@@ -252,7 +252,7 @@ Of course, in the real world there are never constant conditions. Equilibrium re
 
 ## 3. Understanding 'Maximum Sustainable Yield'
 
-We've seen that $B_\text{MSY}$ is an analytical property of the Schaefer model $\left(K/2\right)$, which can be reproduced numerically by running out the model under a constant harvest rate of $U_\text{MSY}$. But where did $U_\text{MSY}$ come from? Next, we'll repeat Step 2 over a range of harvest rates from 0 to 1 in increments of 0.001 and show that the constant harvest rate $U$ that maximizes long-term yield is the same as the estimate of $U_\text{MSY}$ from Section 1.
+We've seen that $B_\text{MSY}$ is an analytical property of the Schaefer model $\left(K/2\right)$, which can be reproduced numerically by running out the model under a constant harvest rate of $U_\text{MSY}$. But where did $U_\text{MSY}$ come from? Next, we'll repeat Step 2 over a range of harvest rates from 0 to 1 in increments of 0.0005 and show that the constant harvest rate $U$ that maximizes long-term yield is the same as the estimate of $U_\text{MSY}$ from Section 1.
 
 The two-parameter Schaefer model produces a symmetrical yield curve. More complex, non-symmetrical versions of this model exist (e.g., the Pella-Tomlinson model; Hilborn and Walters 1992) and, indeed, similar yield curves are produced by age-structured models. The important concept from this exercise is that $U_\text{MSY}$ is the long-term harvest rate that would maximize yield in the long-term under stable conditions.
 

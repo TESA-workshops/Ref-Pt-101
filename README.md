@@ -6,6 +6,10 @@ library(SAMtool)
 
 library(ggplot2)
 
+library(viridis)
+
+library(cowplot)
+
 library(reshape2)
 
 library(kableExtra)

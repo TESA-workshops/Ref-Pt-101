@@ -1,0 +1,207 @@
+---
+title: "TESA Reference Points 101"
+output: html_document
+author: "Tim Barrett, Irene Andrushchenko, and Robyn Forrest"
+date: "November 15 and 22, 2022"
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(kableExtra)
+library(viridis)
+library(reshape2)
+library(cowplot)
+source("source_ftns.r")
+knitr::opts_chunk$set(echo = T, warnings= F)
+```
+
+## Exercise 5B:
+## Reference points using an age-structured model with time-varying $M$
+
+***DISCLAIMER: These are illustrative, deterministic models and should not be used for stock assessment***
+
+**Run the R chunks in Rstudio using the green arrow in each chunk. Run individual lines in the chunks using ctrl+enter. If you want to explore further, you can add your own R code inside any of the chunks, or add your own chunks using ctrl+alt+i. Click on the Knit button in Rstudio to create the document.**
+
+This exercise is similar to Exercise 5A but with time-varying $M$.
+
+Here we look at an operating model (OM) where $M$ for the post-recruit ages is time-varying. The objective of this exercise is to explore the influence of time-varying $M$ on $B_\text{MSY}$ and $B_0$. 
+
+The OM was conditioned on age-composition data for the catch and a survey index for a pollock stock (time series of 39 years). An R object is provided for the OM that contains the relevant data for the exercise. The model was conditioned using a Beverton-Holt stock-recruit relationship (SRR) with an initial assumed $h$ of 0.65 and time-varying $M$. Some simplifying assumptions are made here regarding $M$ over time, i.e., juvenile (age 0-3) $M$-at-age is a constant at 0.2, and adult (age 4+) $M$-at-age was estimated in specific time blocks which we will see below. We assume  that future selectivity-at-age is equal to the maturity-at-age.
+
+The model-estimated Beverton-Holt SRR parameters $\alpha$ and $\beta$ are provided.
+
+We begin by reading in the data and plotting $M$-at-age over the historical time period.
+
+```{r,warning=F,message=F}
+datalist <- readRDS("Ex5data.rda")
+# The DF dataframe has the data needed for this exercise
+# DF contains columns with Year, model estimated SSB in t, model estimated age-0 recruitment (thousands), the Beverton-Holt a and b parameters, and the age (0 to 13+), weight-at-age (waa in kg), proportion mature-at-age (mat), and assumed future selectivity-at-age (sel = mat).
+DF <- datalist$DF
+head(DF)
+# M is time-varying and a matrix of dimension 14 x 39 is provided with the weights-at-age 0 to 13+ for 39 years
+MAA <- datalist$MAA
+MAA[,c(1,15,25,39)] # Preview M-at-age with one year in each time block
+```
+
+Plot of $M$-at-age over time:
+
+```{r,warning=F}
+MAADF <- melt(MAA)
+colnames(MAADF)<-c('Age','Year','M')
+
+ggplot(MAADF, aes(y=Age, x=Year)) + geom_tile(aes(fill=M)) + scale_fill_viridis() + theme_bw() +
+  scale_y_continuous(breaks = 1:13, limits = c(0,14), expand = c(0,0)) + 
+  scale_x_continuous(breaks = seq(0,40,10), limits = c(0,40), expand = c(0,0))
+```
+
+<i><b>Figure 1. Model-assumed $M$-at-age time series over 39 historical years. Age 13 is a plus group</i></b> 
+<br>
+
+## Influence of changes in age 4+ $M$-at-age on $SSB_0$, and $SSB_\text{MSY}$
+
+We explore the influence of using $M$-at-age from one year in each time block:
+
+a\right) year 1 of the time series, 
+
+b\right) year 15 of the time series, 
+
+c\right) year 25 of the time series, or
+
+d\right) year 39 of the time series
+
+on estimates of the unfished SSB-per-recruit ($\phi_{E0}$), $SSB_0$, and $SSB_\text{MSY}$.
+
+```{r,warning=F,message=F}
+# unfished SSB-per-recruit (kg/rec)
+phi0_a <- sum(survivorship_F(f=0,M=MAA[,1],n_ages=14)*DF$waa[1:14]*DF$mat[1:14])
+phi0_b <- sum(survivorship_F(f=0,M=MAA[,15],n_ages=14)*DF$waa[1:14]*DF$mat[1:14])
+phi0_c <- sum(survivorship_F(f=0,M=MAA[,25],n_ages=14)*DF$waa[1:14]*DF$mat[1:14])
+phi0_d <- sum(survivorship_F(f=0,M=MAA[,39],n_ages=14)*DF$waa[1:14]*DF$mat[1:14])
+
+c(phi0_a, phi0_b, phi0_c, phi0_d)
+
+# SSB0
+SSB0_a <- (DF$BHa[1]*phi0_a-1)/DF$BHb[1]
+SSB0_b <- (DF$BHa[1]*phi0_b-1)/DF$BHb[1]
+SSB0_c <- (DF$BHa[1]*phi0_c-1)/DF$BHb[1]
+SSB0_d <- (DF$BHa[1]*phi0_d-1)/DF$BHb[1]
+
+c(SSB0_a, SSB0_b, SSB0_c, SSB0_d)
+
+```
+
+**Figure 2** shows the SRR with the lines through the origin with slope $\frac{1}{\phi_{E0}}$ for each $M$ that intersect the SRR at each value of $SSB_{0}$.
+
+
+```{r,warning=F}
+ggplot(DF)+
+  geom_point(mapping=aes(y=Rec,x=SSB)) + 
+  theme_classic() +
+  labs(x="SSB (t)",y="Age 0 Recruitment in thousands") +
+  scale_x_continuous(limits = c(0,120000), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0,40000), expand = c(0, 0)) +
+  geom_function(fun=function(x) (DF$BHa[1]*x/(1+DF$BHb[1]*x))) +
+  geom_function(fun=function(x) (1/phi0_a*x),colour="midnightblue",linetype=2) +
+  geom_function(fun=function(x) (1/phi0_b*x),colour="yellow2") + geom_function(fun=function(x) (1/phi0_b*x),linetype=2) +
+  geom_function(fun=function(x) (1/phi0_c*x),colour="green2",linetype=2) +
+  geom_function(fun=function(x) (1/phi0_d*x),colour="dodgerblue2",linetype=2) +
+  geom_vline(xintercept=SSB0_a,color="midnightblue") +
+  geom_vline(xintercept=SSB0_b,color="yellow2") + geom_vline(xintercept=SSB0_b,linetype=3) +
+  geom_vline(xintercept=SSB0_c,color="green2") +
+  geom_vline(xintercept=SSB0_d,color="dodgerblue2") 
+
+```
+
+<i><b>Figure 2. Stock-recruit pairs and model-estimated stock-recruit relationship (SRR) with lines through the origin with slopes $\frac{1}{\phi_{E0}}$ with colours matching $M$ in Figure 1 that intersect the SRR at different $B_0$ values (vertical lines)</i></b> 
+<br>
+
+Next we look at the influence of the change in $M$ on $B_\text{MSY}$ and $F_\text{MSY}$, where the `MSYcalc` function from "source_ftns.r" is used to calculate $B_\text{MSY}$.
+
+```{r,warning=F}
+
+RP_a <- MSYcalc(M=MAA[,1],waa=DF$waa[1:14],mat=DF$mat[1:14],sel=DF$sel[1:14],a=DF$BHa[1],b=DF$BHb[1])
+RP_b <- MSYcalc(M=MAA[,15],waa=DF$waa[1:14],mat=DF$mat[1:14],sel=DF$sel[1:14],a=DF$BHa[1],b=DF$BHb[1])
+RP_c <- MSYcalc(M=MAA[,25],waa=DF$waa[1:14],mat=DF$mat[1:14],sel=DF$sel[1:14],a=DF$BHa[1],b=DF$BHb[1])
+RP_d <- MSYcalc(M=MAA[,39],waa=DF$waa[1:14],mat=DF$mat[1:14],sel=DF$sel[1:14],a=DF$BHa[1],b=DF$BHb[1])
+
+RES <- data.frame(M=c(MAA[14,c(1,39,25,15)]),phi_E0=round(c(phi0_a,phi0_d,phi0_c,phi0_b),2),
+                  SSB0=round(c(SSB0_a, SSB0_d, SSB0_c, SSB0_b),0),
+                  SSBmsy=round(c(RP_a$SSBmsy, RP_d$SSBmsy, RP_c$SSBmsy, RP_b$SSBmsy),0),
+                  Fmsy=c(RP_a$Fmsy, RP_d$Fmsy, RP_c$Fmsy, RP_b$Fmsy))
+```
+
+```{r,warning=F,message=F}
+# Plot PhiE0, SSB0, SSBMSY and FMSY against age 4+ M
+
+g1 <- ggplot(RES)+
+  geom_point(mapping=aes(y=phi_E0,x=M), size =3, colour="dodgerblue2") +
+  geom_path(mapping=aes(y=phi_E0,x=M), colour="dodgerblue2")+
+  theme_classic()+
+  labs(x="Age 4+ M",y="phiE0") +
+  ylim(0,1.1*phi0_a)+
+  theme(axis.text.x = element_text(size=12)) +
+  theme(axis.text.y = element_text(size=12)) +
+  theme(axis.title.x = element_text(size=12, face="bold")) +
+  theme(axis.title.y = element_text(size=12, face="bold"))
+g2 <- ggplot(RES)+
+  geom_point(mapping=aes(y=SSB0,x=M), size =3, colour="dodgerblue2") + 
+  geom_path(mapping=aes(y=SSB0,x=M), colour="dodgerblue2")+
+  theme_classic()+
+  labs(x="Age 4+ M",y="SSB0")+
+  ylim(0,1.1*SSB0_a)+
+  theme(axis.text.x = element_text(size=12)) +
+  theme(axis.text.y = element_text(size=12)) +
+  theme(axis.title.x = element_text(size=12, face="bold")) +
+  theme(axis.title.y = element_text(size=12, face="bold"))
+g3 <- ggplot(RES)+
+  geom_point(mapping=aes(y=SSBmsy,x=M), size =3, colour="dodgerblue2") + 
+  geom_path(mapping=aes(y=SSBmsy,x=M), colour="dodgerblue2")+
+  theme_classic()+
+  labs(x="Age 4+ M",y="SSBMSY") +
+  ylim(0,1.1*RP_a$SSBmsy)+
+  theme(axis.text.x = element_text(size=12)) +
+  theme(axis.text.y = element_text(size=12)) +
+  theme(axis.title.x = element_text(size=12, face="bold")) +
+  theme(axis.title.y = element_text(size=12, face="bold"))
+g4 <- ggplot(RES)+
+  geom_point(mapping=aes(y=Fmsy,x=M), size =3, colour="dodgerblue2") + 
+  geom_path(mapping=aes(y=Fmsy,x=M), colour="dodgerblue2")+
+  theme_classic()+
+  labs(x="Age 4+ M",y="FMSY")+
+  ylim(0,1.1*RP_b$Fmsy)+
+  theme(axis.text.x = element_text(size=12)) +
+  theme(axis.text.y = element_text(size=12)) +
+  theme(axis.title.x = element_text(size=12, face="bold")) +
+  theme(axis.title.y = element_text(size=12, face="bold"))
+
+cowplot::plot_grid(g1,g2, g3,g4, ncol=2)
+
+```
+
+<i><b>Figure 3. Relationship between Age 4+ $M$ and $\phi_{E0}$, $SSB_{0}$, $SSB_\text{MSY}$, and $F_\text{MSY}$.</i></b> 
+<br>
+<br>
+<br>
+<i><b>Table 1. $\phi_{E0}$, $SSB_0$, $SSB_\text{MSY}$, and $F_\text{MSY}$ for various $M$ (constant $M$ for adult fish)</i></b> 
+
+```{r,echo=F}
+RES %>% kbl(align=c(rep('c',4))) %>% kable_styling()
+```
+
+We can see the influence of temporal changes in $M$ on the equilibrium reference point calculations in **Table 1** and **Figure 3**. As $M$ increases, $\phi_{E0}$ decreases from reduced survivorship which decreases $SSB_0$. The increased $M$ increases productivity so the stock, in theory, is more resilient to fishing as observed from the higher $F_\text{MSY}$ and lower $SSB_\text{MSY}$. 
+
+In general, a **higher** $M$ results in a **lower** estimate of $B_0$ and $B_\text{MSY}$, and a **higher** $F_\text{MSY}$ (He et al. 2011; Szuwalski and Punt 2012; Punt et al. 2021). However, we advise caution in changing reference points when productivity is changing, as this also implies changing objectives for the stock. See Day 2 presentation for discussion of the management implications of reducing reference points in the presence of increasing $M$. See also Haltuch and Punt (2011) and Punt et al. (2021).
+
+Note that if selectivity is far to the right of maturity, implying that fish have several opportunities to spawn before becoming vulnerable to fisheries, then $F_\text{MSY}$ will be largely insensitive to $M$. This is because, in that situation, the exploitation rate on the <u>vulnerable</u> biomass (which has already spawned) will approach 1 (see Myers and Mertz 1998 for more on this issue). 
+
+# References:
+
+Haltuch, M. A., and Punt, A. E. 2011. The promises and pitfalls of including decadal-scale climate forcing of recruitment in groundfish stock assessment. Canadian Journal of Fisheries and Aquatic Sciences, 68(5), 912–926. https://doi.org/10.1139/f2011-030
+
+He, X., Ralston, S., and MacCall, A.D. 2011. Interactions of age-dependent mortality and selectivity functions in age-based stock assessment models. Fishery Bulletin, 109: 198-216.
+
+Myers, R. A., & Mertz, G. (1998). THE LIMITS OF EXPLOITATION: A PRECAUTIONARY APPROACH. Ecological Applications, 8(sp1), S165–S169. https://doi.org/10.1890/1051-0761(1998)8[S165:TLOEAP]2.0.CO;2
+
+Punt, A.E., Castillo-Jordan, C., Hamel, O.S., Cope, J.M., Maunder, M.N., and Ianelli, J.N. 2021. Consequences of error in natural mortality and its estimation in stock assessment models. Fisheries Research, 233: 105759.
+
+Szuwalski, C., and Punt, A.E. 2012. Identifying research priorities for management under uncertainty: the estimation ability of the stock assessment method used for eastern Bering Sea snow crab (Chionoecetes opilio). Fisheries Research, 134-136, 82-94.

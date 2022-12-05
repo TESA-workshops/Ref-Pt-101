@@ -188,7 +188,7 @@ cowplot::plot_grid(g1,g2, g3,g4, ncol=2)
 RES %>% kbl(align=c(rep('c',4))) %>% kable_styling()
 ```
 
-We can see the influence of temporal changes in $M$ on the equilibrium reference point calculations in **Table 1** and **Figure 3**. As $M$ increases, $\phi_{E0}$ decreases from reduced survivorship which decreases $SSB_0$. The increased $M$ increases productivity so the stock, in theory, is more resilient to fishing as observed from the higher $F_\text{MSY}$ and lower $SSB_\text{MSY}$. 
+We can see the influence of temporal changes in $M$ on the equilibrium reference point calculations in **Table 1** and **Figure 3**. As $M$ increases, $\phi_{E0}$ decreases from reduced survivorship which decreases $SSB_0$. The increased $M$ suggests in theory that the stock is more resilient to fishing pressure as observed from the higher $F_\text{MSY}$ and lower $SSB_\text{MSY}$. 
 
 In general, a **higher** $M$ results in a **lower** estimate of $B_0$ and $B_\text{MSY}$, and a **higher** $F_\text{MSY}$ (He et al. 2011; Szuwalski and Punt 2012; Punt et al. 2021). However, we advise caution in changing reference points when productivity is changing, as this also implies changing objectives for the stock. See Day 2 presentation for discussion of the management implications of reducing reference points in the presence of increasing $M$. See also Haltuch and Punt (2011) and Punt et al. (2021).
 

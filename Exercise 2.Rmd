@@ -38,7 +38,7 @@ BI <- data$BI
 # The Beverton-Holt stock-recruit relationship is parameterized in terms of R0, h, and phi0 [R0 and h are model estimated and phi0 is determined from biological parameters: M-at-age, weight-at-age, and maturity-at-age]. These parameters are stored in the data list:
 h <- data$h
 R0 <- data$R0
-phi0 <<- data$phi0
+phi0 <- data$phi0
 
 # Preview data
 head(SR)

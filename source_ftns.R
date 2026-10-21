@@ -26,7 +26,7 @@ survivorship_F <- function(f=0,M,n_ages,sel,message=T){
     for(a in 2:(n_ages-1)){
       l_age[a] <- l_age[a-1]* exp(-(M[a-1]+f*sel[a-1]))
     }
-    l_age[n_ages] <- l_age[n_ages-1]*exp(-(M[a-1]+f*sel[a-1]))/(1-exp(-(M[a]+f*sel[a])))
+    l_age[n_ages] <- l_age[n_ages-1]*exp(-(M[n_ages-1]+f*sel[n_ages-1]))/(1-exp(-(M[n_ages]+f*sel[n_ages])))
     return(l_age)
   }
 }
